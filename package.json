@@ -2,5 +2,9 @@
   "dependencies": {
     "inquirer": "^8.2.4",
     "mysql2": "^3.9.2"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "seed": "node db/seedData.sql"
   }
 }

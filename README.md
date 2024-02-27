@@ -59,4 +59,10 @@ THEN I am prompted to select an employee to update and their new role and this i
 
 Bootcamp Spot MySQL2 for node.js
 
-Referenced code from Project 2-Dungeons & Devs: [GitHub Link](https://github.com/Maximilian93B/DungeonsAndDevs.git)
+Referenced code from Project 2-Dungeons & Devs: [GitHub Link](https://github.com/Maximilian93B/DungeonsAndDevs.git), Challenge 9 and Challenge 10
+
+Tutor Samuel Cordova-Help with file structre and connection to employee_db
+
+# Deployment
+
+GitHub Repository Link [Click Here!](https://)
