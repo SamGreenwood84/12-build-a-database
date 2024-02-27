@@ -1,5 +1,3 @@
-
-
 --Schema for Employee Database Table
 
 CREATE TABLE department (
