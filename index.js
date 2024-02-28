@@ -172,7 +172,7 @@ async function insertRole(roleName, departmentId) {
     }
 
     // If the role doesn't exist, insert a new one and retrieve the generated ID
-    const [rows] = await connectionPool.execute('INSERT INTO role (title, department_id) VALUES (?, ?)', [roleName, departmentId]);
+    const [rows] = await connectionPool.execute('INSERT INTO role (title, department_id, salary) VALUES (?, ?, ?)', [roleName, departmentId, roleSalary]);
     console.log(`Successful role entry! New role: ${roleName} with ID: ${rows.insertId}`);
     return rows.insertId;
   } catch (error) {
@@ -334,7 +334,7 @@ async function startRoleInput(departmentId) {
       },
     ]);
 
-    const roleId = await insertRole(roleName, departmentId, roleSalary);
+    const roleId = await insertRole(roleName, departmentId || null, roleSalary);
 
     if (roleId) {
       if (departmentId) {
@@ -370,7 +370,16 @@ async function startInput() {
 
   if (usageType === "View") {
     // Implement view logic
-    console.log("Viewing the database...");
+    console.log('______________________________________________________________________________');
+    console.log('Step 1: Copy/Paste the next line into the Command Line and click enter:"');
+    console.log('______________________________________________________________________________');
+    console.log('mysql -u user -p -e "show tables;"');
+    console.log('______________________________________________________________________________');
+    console.log('Step 2: Open the Command Prompt and navigate to folder of MySQL. Run Query:');
+    console.log('______________________________________________________________________________');
+    console.log('mysqlshow -u user -p');
+    console.log('______________________________________________________________________________');
+
   } else if (usageType === "Entry") {
     const { isNewDepartment } = await inquirer.prompt([
       {
