@@ -291,7 +291,6 @@ async function startDepartmentInput() {
   }
 }
 
-// Function to start the role input process
 async function startRoleInput(departmentId) {
   const { isNewRole } = await inquirer.prompt([
     {
@@ -303,18 +302,26 @@ async function startRoleInput(departmentId) {
 
   if (isNewRole) {
     // Insert role into the database
-    const { roleName } = await inquirer.prompt([
+    const { roleName, roleSalary } = await inquirer.prompt([
       {
         type: "input",
         name: "roleName",
-        message: "Enter the role name:",
+        message: "Enter the new role name:",
         validate: function (input) {
           return input.trim() !== "" || "Invalid entry";
         },
       },
+      {
+        type: "input",
+        name: "roleSalary",
+        message: "Enter the new role salary:",
+        validate: function (input) {
+          return /^\d+$/.test(input) || "Please enter a valid salary (numeric).";
+        },
+      },
     ]);
 
-    const roleId = await insertRole(roleName, departmentId);
+    const roleId = await insertRole(roleName, departmentId, roleSalary);
 
     if (roleId) {
       if (departmentId) {
