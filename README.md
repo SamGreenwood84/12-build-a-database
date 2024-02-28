@@ -63,6 +63,8 @@ Referenced code from Project 2-Dungeons & Devs: [GitHub Link](https://github.com
 
 Tutor Samuel Cordova-Help with file structre and connection to employee_db
 
+Figet Installation: [Cloudsmith.com](https://cloudsmith.com/navigator/npm/figlet?source=infosec-jobs.com&utm_term=&utm_campaign=&utm_source=google&utm_medium=cpc&hsa_acc=2785245595&hsa_cam=20960539431&hsa_grp=&hsa_ad=&hsa_src=x&hsa_tgt=&hsa_kw=&hsa_mt=&hsa_net=adwords&hsa_ver=3&gad_source=2&gclid=CjwKCAiA0PuuBhBsEiwAS7fsNWWi1hbv-sETlRUKu6WEwwsq3gBUYMxYA7ixmYlnZNLH4yIsyquGshoCl_YQAvD_BwE)
+
 # Deployment
 
 GitHub Repository Link [Click Here!](https://)
