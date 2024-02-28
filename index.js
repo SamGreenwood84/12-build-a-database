@@ -202,35 +202,39 @@ function displayEntryDetails(data) {
   console.log("--------------\n");
 }
 
-// Function to start the employee input process
 async function startEmployeeInput() {
   const { firstName, lastName, isNewRole, roleId, managerId } = await inquirer.prompt(employeeQuestions);
 
+  let roleName = null; // Declare roleName outside the if block
+  let roleIdToUpdate = roleId; // Use a separate variable to track roleId updates
+
   if (isNewRole) {
-    // Insert new role and get the roleId
+    // Ask for the role name and insert a new role
+    const response = await inquirer.prompt([
+      {
+        type: "input",
+        name: "roleName",
+        message: "Enter the role name:",
+        validate: function (input) {
+          return input.trim() !== "" || "Invalid entry";
+        },
+      },
+    ]);
+
+    roleName = response.roleName;
+
+    // Insert a new role and get the roleId
     const newRoleId = await insertRole(roleName, null);
-    roleId = newRoleId || roleId;
-  }
+    roleIdToUpdate = newRoleId || roleIdToUpdate; // Update the variable
 
-  // Fetch and display role title based on roleId
-  const [roleRow] = await connectionPool.execute('SELECT title FROM role WHERE id = ?', [roleId]);
-  const roleTitle = roleRow.length ? roleRow[0].title : null;
-  console.log(`Role: ${roleTitle || 'Unknown'}`);
-
-  // Fetch and display manager name based on managerId
-  const managerName = managerId ? await getManagerName(managerId) : null;
-  console.log(`Manager: ${managerName || 'Unknown'}`);
-
-  // Insert employee data into the database
-  const employeeData = { firstName, lastName, roleId, managerId: managerId || null };
-  const isConfirmed = await confirmDetails(employeeData);
-
-  if (isConfirmed) {
-    await insertEmployee(employeeData);
-    console.log("Congratulations! You've made a successful employee entry!");
+    // Display success message for new role
+    console.log(`Successful role entry! New role: ${roleName} with ID: ${newRoleId}`);
   } else {
-    console.log("Entry canceled. Starting over...");
-    await startEmployeeInput();
+    // If it's not a new role, remove the question about role name
+    const roleQuestionIndex = employeeQuestions.findIndex((question) => question.name === "roleName");
+    if (roleQuestionIndex !== -1) {
+      employeeQuestions.splice(roleQuestionIndex, 1);
+    }
   }
 }
 
