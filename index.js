@@ -19,7 +19,7 @@ const fs = require('fs');
 const figletText = fs.readFileSync('SuccessStartsHere.txt', 'utf8');
 
 // Execute figlet with the content
-execSync(`figlet -f slant -w 120 -c -t "${figletText}"`, { stdio: 'inherit' });
+execSync(`figlet -f +---doom -w 120 -c -t "${figletText}"`, { stdio: 'inherit' });
 
 
 console.log(".............................................");
