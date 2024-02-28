@@ -385,7 +385,7 @@ async function startInput() {
       {
         type: "confirm",
         name: "isNewDepartment",
-        message: "Are you entering a new department? (Y/N)",
+        message: "Are you entering a new department?",
       },
     ]);
 
@@ -410,14 +410,14 @@ async function startInput() {
       {
         type: "confirm",
         name: "isNewRole",
-        message: "Are you entering a new role? (Y/N)",
+        message: "Are you entering a new role?",
       },
     ]);
 
     let roleId = null;
     if (isNewRole) {
       // If new role, ask for role name, salary, and department ID
-      const { roleName, roleSalary, departmentId: roleDepartmentId } = await inquirer.prompt([
+      const { roleName, roleSalary, departmentId } = await inquirer.prompt([
         {
           type: "input",
           name: "roleName",
@@ -427,29 +427,29 @@ async function startInput() {
           },
         },
         {
-          type: "input",
+          type: "number",
           name: "roleSalary",
           message: "Enter the new role salary:",
           validate: function (input) {
-            return /^\d+$/.test(input) || "Please enter a valid role salary (numeric).";
+            return input >= 0 || "Salary must be a non-negative number";
           },
         },
         {
-          type: "input",
+          type: "number",
           name: "departmentId",
           message: "Enter the department ID for the new role:",
-          when: function (answers) {
-            // Ask for department ID only if it's a new role
-            return isNewRole;
-          },
           validate: function (input) {
-            return /^\d+$/.test(input) || "Please enter a valid department ID (numeric).";
+            return input >= 0 || "Department ID must be a non-negative number";
           },
         },
       ]);
+      
+      // Now you can pass roleName, roleSalary, and departmentId to the insertRole function
+      await insertRole(roleName, roleSalary, departmentId);
+      
 
       // Use the provided department ID or the one obtained when entering a new department
-      roleId = await insertRole(roleName, roleDepartmentId || departmentId, roleSalary);
+      roleId = await insertRole(roleName, departmentId || null, roleSalary);
     }
 
     const { entryType } = await inquirer.prompt(entryTypeQuestions);
@@ -468,7 +468,7 @@ async function confirmDetails(data) {
     {
       type: "confirm",
       name: "confirm",
-      message: `Confirm details:\n${JSON.stringify(data, null, 2)}\nProceed? (Y/N)`,
+      message: `Confirm details:\n${JSON.stringify(data, null, 2)}\nProceed?`,
     },
   ]);
 
@@ -497,7 +497,7 @@ async function startEmployeeInput() {
     roleName = response.roleName;
 
     // Insert a new role and get the roleId
-    const newRoleId = await insertRole(roleName, null);
+    const newRoleId = await insertRole(roleName, null, roleSalary);
     roleIdToUpdate = newRoleId || roleId; // Update roleIdToUpdate
   } else {
     // If it's not a new role, remove the question about role name
