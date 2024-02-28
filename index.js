@@ -2,6 +2,7 @@ const inquirer = require("inquirer");
 const mysql = require("mysql2/promise");
 const { execSync } = require('child_process');
 const path = require('path');
+const fs = require('fs');
 
 const connectionPool = mysql.createPool({
   host: '127.0.0.1',
@@ -13,14 +14,15 @@ const connectionPool = mysql.createPool({
   queueLimit: 0
 });
 
-const fs = require('fs');
+try {
+  // Read the content of Welcome.txt
+  const figletText = fs.readFileSync('Success.txt', 'utf8');
 
-// Read the content of SuccessStartsHere.txt
-const figletText = fs.readFileSync('SuccessStartsHere.txt', 'utf8');
-
-// Execute figlet with the content
-execSync(`figlet -f +---doom -w 120 -c -t "${figletText}"`, { stdio: 'inherit' });
-
+  // Execute figlet with the content
+  execSync(`figlet Success! "${figletText}"`, { stdio: 'inherit' });
+} catch (error) {
+  console.error('Error displaying Figlet message:', error.message);
+}
 
 console.log(".............................................");
 console.log("Welcome to Your Employee Database!");
