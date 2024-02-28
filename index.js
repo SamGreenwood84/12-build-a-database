@@ -33,6 +33,7 @@ const entryTypeQuestions = [
   },
 ];
 
+// Declare employeeQuestions at the top of the file
 const employeeQuestions = [
   {
     type: "input",
@@ -46,19 +47,6 @@ const employeeQuestions = [
     type: "input",
     name: "lastName",
     message: "Enter their last name:",
-    validate: function (input) {
-      return input.trim() !== "" || "Invalid entry";
-    },
-  },
-  {
-    type: "confirm",
-    name: "isNewRole",
-    message: "Is this a new role?",
-  },
-  {
-    type: "input",
-    name: "roleName",
-    message: "Enter the role name:",
     validate: function (input) {
       return input.trim() !== "" || "Invalid entry";
     },
@@ -97,11 +85,6 @@ const managerQuestions = [
     validate: function (input) {
       return input.trim() !== "" || "Invalid Entry";
     },
-  },
-  {
-    type: "confirm",
-    name: "isNewDepartment",
-    message: "Is this a new department?",
   },
   {
     type: "input",
@@ -221,7 +204,13 @@ function displayEntryDetails(data) {
 
 // Function to start the employee input process
 async function startEmployeeInput() {
-  const { firstName, lastName, roleId, managerId } = await inquirer.prompt(employeeQuestions);
+  const { firstName, lastName, isNewRole, roleId, managerId } = await inquirer.prompt(employeeQuestions);
+
+  if (isNewRole) {
+    // Insert new role and get the roleId
+    const newRoleId = await insertRole(roleName, null);
+    roleId = newRoleId || roleId;
+  }
 
   // Fetch and display role title based on roleId
   const [roleRow] = await connectionPool.execute('SELECT title FROM role WHERE id = ?', [roleId]);
@@ -229,13 +218,28 @@ async function startEmployeeInput() {
   console.log(`Role: ${roleTitle || 'Unknown'}`);
 
   // Fetch and display manager name based on managerId
-  const [managerRow] = await connectionPool.execute('SELECT first_name, last_name FROM managers WHERE id = ?', [managerId]);
-  const managerName = managerRow.length ? `${managerRow[0].first_name} ${managerRow[0].last_name}` : null;
+  const managerName = managerId ? await getManagerName(managerId) : null;
   console.log(`Manager: ${managerName || 'Unknown'}`);
 
   // Insert employee data into the database
-  await insertEmployee({ firstName, lastName, roleId, managerId });
+  const employeeData = { firstName, lastName, roleId, managerId: managerId || null };
+  const isConfirmed = await confirmDetails(employeeData);
+
+  if (isConfirmed) {
+    await insertEmployee(employeeData);
+    console.log("Congratulations! You've made a successful employee entry!");
+  } else {
+    console.log("Entry canceled. Starting over...");
+    await startEmployeeInput();
+  }
 }
+
+// Function to fetch and return manager name based on managerId
+async function getManagerName(managerId) {
+  const [managerRow] = await connectionPool.execute('SELECT first_name, last_name FROM managers WHERE id = ?', [managerId]);
+  return managerRow.length ? `${managerRow[0].first_name} ${managerRow[0].last_name}` : null;
+}
+
 
 // Function to start the manager input process
 async function startManagerInput() {
@@ -353,6 +357,51 @@ async function startInput() {
       // Start the manager input process
       await startManagerInput();
     }
+  }
+}
+// Function to confirm details before inserting into the database
+async function confirmDetails(data) {
+  const { confirm } = await inquirer.prompt([
+    {
+      type: "confirm",
+      name: "confirm",
+      message: `Confirm details:\n${JSON.stringify(data, null, 2)}\nProceed? (Y/N)`,
+    },
+  ]);
+
+  return confirm;
+}
+
+// Function to start the employee input process
+async function startEmployeeInput() {
+  const { firstName, lastName, isNewRole, roleId, managerId } = await inquirer.prompt(employeeQuestions);
+
+  if (isNewRole) {
+    // Insert new role and get the roleId
+    const newRoleId = await insertRole(roleName, null);
+    roleId = newRoleId || roleId;
+  }
+
+  // Fetch and display role title based on roleId
+  const [roleRow] = await connectionPool.execute('SELECT title FROM role WHERE id = ?', [roleId]);
+  const roleTitle = roleRow.length ? roleRow[0].title : null;
+  console.log(`Role: ${roleTitle || 'Unknown'}`);
+
+  // Fetch and display manager name based on managerId
+  const [managerRow] = await connectionPool.execute('SELECT first_name, last_name FROM managers WHERE id = ?', [managerId]);
+  const managerName = managerRow.length ? `${managerRow[0].first_name} ${managerRow[0].last_name}` : null;
+  console.log(`Manager: ${managerName || 'Unknown'}`);
+
+  // Insert employee data into the database
+  const employeeData = { firstName, lastName, roleId, managerId };
+  const isConfirmed = await confirmDetails(employeeData);
+
+  if (isConfirmed) {
+    await insertEmployee(employeeData);
+    console.log("Congratulations! You've made a successful employee entry!");
+  } else {
+    console.log("Entry canceled. Starting over...");
+    await startEmployeeInput();
   }
 }
 
