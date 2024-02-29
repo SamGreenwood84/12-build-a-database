@@ -16,7 +16,7 @@ INSERT INTO role (id, title, salary, department_id) VALUES
 (2, 'Sales Lead', 100000, 1),
 (3, 'Cyber Security Manager', 100000, 2),
 (4, 'Account Analyst', 50000, 2),
-(5, 'Finance Manager', 200000, 3),
+(5, 'Finance Manager', 120000, 3),
 (6, 'Accountant', 60000, 3),
 (7, 'HR Manager', 80000, 4),
 (8, 'Employee Support', 60000, 4),
@@ -39,7 +39,7 @@ INSERT INTO managers (id, manager_name, department_name, role_id) VALUES
 INSERT INTO employee (id, first_name, last_name, title, salary, manager_name) VALUES
 (1, 'Eddie', 'Cheddar', 'Sales Lead', 100000, 'Chance TheRapper'),
 (2, 'Crash', 'Bandicoot', 'Account Analyst', 50000, 'Joe Biden'),
-(2, 'Kevin', 'Malone', 'Accountant', 'Bart Simpson'),
-(3, 'Mary', 'Jane', 'Employee Support', 60000, 'Snow White'),
-(4, 'Buffy', 'Thevampireslayer', 'Account Rep', 70000, 'Busta Rhymes'),
-(5, 'Hewho', 'Shallnotbenamed', 'Guard', 40000, 'Stewie Griffin');
+(3, 'Kevin', 'Malone', 'Accountant', 60000, 'Bart Simpson'),
+(4, 'Mary', 'Jane', 'Employee Support', 60000, 'Snow White'),
+(5, 'Buffy', 'Thevampireslayer', 'Account Rep', 70000, 'Busta Rhymes'),
+(6, 'Hewho', 'Shallnotbenamed', 'Guard', 40000, 'Stewie Griffin');
