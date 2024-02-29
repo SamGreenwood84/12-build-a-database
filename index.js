@@ -203,8 +203,8 @@ function displayEntryDetails(data) {
 }
 
 async function getManagerName(managerId) {
-  const [managerRow] = await connectionPool.execute('SELECT first_name, last_name FROM managers WHERE id = ?', [managerId]);
-  return managerRow.length ? `${managerRow[0].first_name} ${managerRow[0].last_name}` : null;
+  const [managerRow] = await connectionPool.execute('SELECT manager_name FROM managers WHERE id = ?', [managerId]);
+  return managerRow.length ? managerRow[0].manager_name : null;
 }
 
 async function startManagerInput() {
