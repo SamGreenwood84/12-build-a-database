@@ -14,7 +14,6 @@ const connectionPool = mysql.createPool({
   queueLimit: 0
 });
 
-// Function to display success message using figlet
 function displaySuccessMessage() {
   try {
     const figletText = fs.readFileSync(path.join(__dirname, 'Success.txt'), 'utf8');
@@ -24,14 +23,12 @@ function displaySuccessMessage() {
   }
 }
 
-// Display success message
 displaySuccessMessage();
 
 console.log(".............................................");
 console.log("Welcome to Your Employee Database!");
 console.log("Enter employee details to add to the database.");
 
-// Common employee questions
 const commonEmployeeQuestions = [
   {
     type: "input",
@@ -51,7 +48,6 @@ const commonEmployeeQuestions = [
   },
 ];
 
-// Employee-specific questions
 const employeeQuestions = [
   ...commonEmployeeQuestions,
   {
@@ -72,15 +68,14 @@ const employeeQuestions = [
   },
 ];
 
-// Manager-specific questions
 const managerQuestions = [
   ...commonEmployeeQuestions,
   {
     type: "input",
-    name: "departmentId",
-    message: "Enter the manager's department ID:",
+    name: "departmentName",
+    message: "Enter the manager's department name:",
     validate: function (input) {
-      return /^\d+$/.test(input) || "Please enter a valid department ID (numeric).";
+      return input.trim() !== "" || "Invalid entry";
     },
   },
   {
@@ -93,7 +88,6 @@ const managerQuestions = [
   },
 ];
 
-// Entry type questions
 const entryTypeQuestions = [
   {
     type: "list",
@@ -103,12 +97,11 @@ const entryTypeQuestions = [
   },
 ];
 
-// Function to insert employee data into the database
 async function insertEmployee(employeeData, roleSalary) {
   try {
     const [existingEmployee] = await connectionPool.execute(
-      'SELECT id FROM employee WHERE first_name = ? AND last_name = ? AND role_id = ? AND manager_id = ?',
-      [employeeData.firstName, employeeData.lastName, employeeData.roleId, employeeData.managerId]
+      'SELECT id FROM employee WHERE first_name = ? AND last_name = ? AND role_id = ? AND manager_name = ?',
+      [employeeData.firstName, employeeData.lastName, employeeData.roleId, employeeData.managerName]
     );
 
     if (existingEmployee.length) {
@@ -117,8 +110,8 @@ async function insertEmployee(employeeData, roleSalary) {
     }
 
     const [rows] = await connectionPool.execute(
-      'INSERT INTO employee (first_name, last_name, role_id, manager_id, role_salary) VALUES (?, ?, ?, ?, ?)',
-      [employeeData.firstName, employeeData.lastName, employeeData.roleId, employeeData.managerId, roleSalary]
+      'INSERT INTO employee (first_name, last_name, role_id, manager_name, salary) VALUES (?, ?, ?, ?, ?)',
+      [employeeData.firstName, employeeData.lastName, employeeData.roleId, employeeData.managerName, roleSalary]
     );
 
     console.log(`Inserted employee: ${employeeData.firstName} ${employeeData.lastName} with ID: ${rows.insertId}`);
@@ -128,34 +121,25 @@ async function insertEmployee(employeeData, roleSalary) {
   }
 }
 
-// Function to insert manager data into the database
-async function insertManager(firstName, lastName, departmentId, roleId) {
+async function insertManager(firstName, lastName, departmentName, roleId) {
   try {
-    departmentId = parseInt(departmentId);
-
     const [rows] = await connectionPool.execute(
-      'INSERT INTO managers (first_name, last_name, department_id, role_id) VALUES (?, ?, ?, ?)',
-      [firstName, lastName, departmentId, roleId]
+      'INSERT INTO managers (first_name, last_name, department_name, role_id) VALUES (?, ?, ?, ?)',
+      [firstName, lastName, departmentName, roleId]
     );
 
     console.log(`Inserted manager: ${firstName} ${lastName} with ID: ${rows.insertId}`);
-    displayEntryDetails({ firstName, lastName, departmentId, roleId });
+    displayEntryDetails({ firstName, lastName, departmentName, roleId });
   } catch (error) {
     console.error('Error inserting manager:', error);
   }
 }
 
-// Function to insert role data into the database or retrieve existing role ID
-async function insertRole(roleName, departmentId, roleSalary) {
+async function insertRole(roleName, departmentName, roleSalary) {
   try {
-    if (!departmentId) {
-      const newDepartmentId = await insertDepartment();
-      departmentId = newDepartmentId || departmentId;
-    }
-
     const [existingRole] = await connectionPool.execute(
-      'SELECT id FROM role WHERE title = ? AND department_id = ?',
-      [roleName, departmentId]
+      'SELECT id FROM role WHERE title = ? AND department_id IN (SELECT id FROM department WHERE department_name = ?)',
+      [roleName, departmentName]
     );
 
     if (existingRole.length) {
@@ -164,8 +148,8 @@ async function insertRole(roleName, departmentId, roleSalary) {
     }
 
     const [rows] = await connectionPool.execute(
-      'INSERT INTO role (title, department_id, salary) VALUES (?, ?, ?)',
-      [roleName, departmentId, roleSalary]
+      'INSERT INTO role (title, department_id, salary) VALUES (?, (SELECT id FROM department WHERE department_name = ?), ?)',
+      [roleName, departmentName, roleSalary]
     );
 
     console.log(`Successful role entry! New role: ${roleName} with ID: ${rows.insertId}`);
@@ -176,7 +160,6 @@ async function insertRole(roleName, departmentId, roleSalary) {
   }
 }
 
-// Function to insert department data into the database or retrieve existing department ID
 async function insertDepartment(departmentName) {
   try {
     if (!departmentName) {
@@ -185,7 +168,7 @@ async function insertDepartment(departmentName) {
     }
 
     const [existingDepartment] = await connectionPool.execute(
-      'SELECT id FROM department WHERE name = ?',
+      'SELECT id FROM department WHERE department_name = ?',
       [departmentName]
     );
 
@@ -195,7 +178,7 @@ async function insertDepartment(departmentName) {
     }
 
     const [rows] = await connectionPool.execute(
-      'INSERT INTO department (name) VALUES (?)',
+      'INSERT INTO department (department_name) VALUES (?)',
       [departmentName]
     );
 
@@ -208,40 +191,32 @@ async function insertDepartment(departmentName) {
   }
 }
 
-// Function to display entry details
 function displayEntryDetails(data) {
   console.log(`Congratulations! You've made a successful entry!\n`);
   console.log("Entry Details:");
   console.log("--------------");
   console.log(`First Name: ${data.firstName}`);
   console.log(`Last Name: ${data.lastName}`);
-  console.log(`Department ID: ${data.departmentId || 'N/A'}`);
+  console.log(`Department Name: ${data.departmentName || 'N/A'}`);
   console.log(`Role ID: ${data.roleId || 'N/A'}`);
   console.log("--------------\n");
 }
 
-// Function to fetch and return manager name based on managerId
 async function getManagerName(managerId) {
   const [managerRow] = await connectionPool.execute('SELECT first_name, last_name FROM managers WHERE id = ?', [managerId]);
   return managerRow.length ? `${managerRow[0].first_name} ${managerRow[0].last_name}` : null;
 }
 
-// Function to start the manager input process
 async function startManagerInput() {
-  const { firstName, lastName, departmentId, roleId } = await inquirer.prompt(managerQuestions);
-
-  const [departmentRow] = await connectionPool.execute('SELECT name FROM department WHERE id = ?', [departmentId]);
-  const departmentName = departmentRow.length ? departmentRow[0].name : null;
-  console.log(`Department: ${departmentName || 'Unknown'}`);
+  const { firstName, lastName, departmentName, roleId } = await inquirer.prompt(managerQuestions);
 
   const [roleRow] = await connectionPool.execute('SELECT title FROM role WHERE id = ?', [roleId]);
   const roleTitle = roleRow.length ? roleRow[0].title : null;
   console.log(`Role: ${roleTitle || 'Unknown'}`);
 
-  await insertManager(firstName, lastName, departmentId, roleId);
+  await insertManager(firstName, lastName, departmentName, roleId);
 }
 
-// Function to start the department input process
 async function startDepartmentInput() {
   const { isNewDepartment, departmentName } = await inquirer.prompt([
     {
@@ -277,7 +252,7 @@ async function startRoleInput(departmentId) {
   ]);
 
   if (isNewRole) {
-    const { roleName, roleSalary, departmentId } = await inquirer.prompt([
+    const { roleName, roleSalary } = await inquirer.prompt([
       {
         type: "input",
         name: "roleName",
@@ -294,25 +269,10 @@ async function startRoleInput(departmentId) {
           return /^\d+$/.test(input) || "Please enter a valid salary (numeric).";
         },
       },
-      {
-        type: "input",
-        name: "departmentId",
-        message: "Enter the department Id:",
-        validate: function (input) {
-          return /^\d+$/.test(input) || "Please enter a valid salary (numeric).";
-        },
-      },
     ]);
 
-    const roleId = await insertRole(roleName, departmentId || null, roleSalary);
-
-    if (roleId) {
-      if (departmentId) {
-        await startEmployeeInput();
-      } else {
-        await startDepartmentInput();
-      }
-    }
+    await insertRole(roleName, departmentId, roleSalary);
+    await startEmployeeInput();
   } else {
     const { roleId } = await inquirer.prompt([
       {
@@ -362,7 +322,7 @@ async function startEmployeeInput() {
     const newRoleId = await insertRole(roleName, null, roleSalary);
     roleIdToUpdate = newRoleId || roleId;
   } else {
-    const roleQuestionIndex = employeeQuestions.findIndex((question) => question.name === "roleName");
+    const roleQuestionIndex = employeeQuestions.findIndex((question) => question.name === "roleId");
     if (roleQuestionIndex !== -1) {
       employeeQuestions.splice(roleQuestionIndex, 1);
     }
@@ -376,7 +336,7 @@ async function startEmployeeInput() {
   const managerName = managerId ? await getManagerName(managerId) : null;
   console.log(`Manager: ${managerName || 'Unknown'}`);
 
-  const employeeData = { firstName, lastName, roleId: roleIdToUpdate, managerId: managerId || null };
+  const employeeData = { firstName, lastName, roleId: roleIdToUpdate, managerName };
   const isConfirmed = await confirmDetails(employeeData);
 
   if (isConfirmed) {
@@ -445,8 +405,8 @@ async function confirmDetails(data) {
   console.log("==================================");
   console.log(`First Name: ${data.firstName}`);
   console.log(`Last Name: ${data.lastName}`);
-  console.log(`Role ID: ${data.roleId}`);
-  console.log(`Manager ID: ${data.managerId || 'N/A'}`);
+  console.log(`Department Name: ${data.departmentName || 'N/A'}`);
+  console.log(`Role ID: ${data.roleId || 'N/A'}`);
   console.log("==================================");
 
   const { isConfirmed } = await inquirer.prompt([
@@ -460,7 +420,6 @@ async function confirmDetails(data) {
   return isConfirmed;
 }
 
-// View all departments
 async function viewAllDepartments() {
   try {
     const [rows] = await connectionPool.execute('SELECT * FROM department');
@@ -471,7 +430,6 @@ async function viewAllDepartments() {
   }
 }
 
-// View all roles
 async function viewAllRoles() {
   try {
     const [rows] = await connectionPool.execute('SELECT * FROM role');
@@ -482,7 +440,6 @@ async function viewAllRoles() {
   }
 }
 
-// View all employees
 async function viewAllEmployees() {
   try {
     const [rows] = await connectionPool.execute('SELECT * FROM employee');
@@ -493,7 +450,6 @@ async function viewAllEmployees() {
   }
 }
 
-// View all managers
 async function viewAllManagers() {
   try {
     const [rows] = await connectionPool.execute('SELECT * FROM managers');
@@ -504,10 +460,9 @@ async function viewAllManagers() {
   }
 }
 
-// View all salaries
 async function viewAllSalaries() {
   try {
-    const [rows] = await connectionPool.execute('SELECT first_name, last_name, role_salary FROM employee');
+    const [rows] = await connectionPool.execute('SELECT first_name, last_name, salary FROM employee');
     console.log("\nAll Salaries:");
     console.table(rows);
   } catch (error) {
@@ -515,5 +470,4 @@ async function viewAllSalaries() {
   }
 }
 
-// Start the input process
 startInput();
