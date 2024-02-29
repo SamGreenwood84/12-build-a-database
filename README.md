@@ -31,9 +31,35 @@ THEN I am presented with the following options: ? Are you viewing your database 
 
 WHEN I choose to view 
 
-THEN I am presented with a set of instructions to enter into the command line
+THEN I am presented with a set of options in the command line
 
-![alt text](assets/viewDB.png)
+```java
+? Choose an option to view: (Use arrow keys)
+> View All Departments
+  View All Roles
+  View All Employees
+  View All Managers
+  View All Salaries
+```
+
+WHEN I choose View All <TABLE CHOICE>> 
+
+THEN I am presented with the TABLE, for example the employees TABLE;
+
+```java
+All Employees:
+┌─────────┬────┬────────────┬────────────────────┬────────────────────┬──────────┬────────────────────┐
+│ (index) │ id │ first_name │     last_name      │       title        │  salary  │    manager_name    │
+├─────────┼────┼────────────┼────────────────────┼────────────────────┼──────────┼────────────────────┤
+│    0    │ 1  │  'Eddie'   │     'Cheddar'      │    'Sales Lead'    │ '100000' │ 'Chance TheRapper' │
+│    1    │ 2  │  'Crash'   │    'Bandicoot'     │ 'Account Analyst'  │ '50000'  │    'Joe Biden'     │
+│    2    │ 3  │  'Kevin'   │      'Malone'      │    'Accountant'    │ '60000'  │   'Bart Simpson'   │
+│    3    │ 4  │   'Mary'   │       'Jane'       │ 'Employee Support' │ '60000'  │    'Snow White'    │
+│    4    │ 5  │  'Buffy'   │ 'Thevampireslayer' │   'Account Rep'    │ '70000'  │   'Busta Rhymes'   │
+│    5    │ 6  │  'Hewho'   │ 'Shallnotbenamed'  │      'Guard'       │ '40000'  │  'Stewie Griffin'  │
+└─────────┴────┴────────────┴────────────────────┴────────────────────┴──────────┴────────────────────┘
+
+```
 
 WHEN I choose to make an entry
 
