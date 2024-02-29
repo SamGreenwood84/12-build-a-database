@@ -365,6 +365,7 @@ async function startInput() {
 
   if (usageType === "View") {
     const viewOptions = [
+      { name: "View All Tables", func: viewAllTables },
       { name: "View All Departments", func: viewAllDepartments },
       { name: "View All Roles", func: viewAllRoles },
       { name: "View All Employees", func: viewAllEmployees },
@@ -418,6 +419,33 @@ async function confirmDetails(data) {
   ]);
 
   return isConfirmed;
+}
+
+async function viewAllTables() {
+  try {
+    // View all departments
+    const [departmentRows] = await connectionPool.execute('SELECT * FROM department');
+    console.log("\nAll Departments:");
+    console.table(departmentRows);
+
+    // View all roles
+    const [roleRows] = await connectionPool.execute('SELECT * FROM role');
+    console.log("\nAll Roles:");
+    console.table(roleRows);
+
+    // View all employees
+    const [employeeRows] = await connectionPool.execute('SELECT * FROM employee');
+    console.log("\nAll Employees:");
+    console.table(employeeRows);
+
+    // View all managers
+    const [managerRows] = await connectionPool.execute('SELECT * FROM managers');
+    console.log("\nAll Managers:");
+    console.table(managerRows);
+
+  } catch (error) {
+    console.error('Error viewing tables:', error);
+  }
 }
 
 async function viewAllDepartments() {

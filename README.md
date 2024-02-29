@@ -35,14 +35,15 @@ THEN I am presented with a set of options in the command line
 
 ```java
 ? Choose an option to view: (Use arrow keys)
-> View All Departments
+> View All Tables
+  View All Departments
   View All Roles
   View All Employees
   View All Managers
   View All Salaries
 ```
 
-WHEN I choose View All <TABLE CHOICE>> 
+WHEN I choose View All <CHOICE>> 
 
 THEN I am presented with the TABLE, for example the employees TABLE;
 
