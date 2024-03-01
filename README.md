@@ -1,7 +1,12 @@
 # 12-build-a-database
 SQL Challenge: Employee Tracker
 
+# Table of Contents
+
+
+
 # Live Demo Video
+
 
 
 # Getting Started
@@ -66,7 +71,7 @@ WHEN I choose to make an entry
 
 THEN I am presented with: ? Are you entering a new department? (Y/N)
 
-WHEN I choose no the line of questions and input continues
+WHEN I choose no the questions and input continues
 
 WHEN I choose yes 
 
@@ -108,6 +113,8 @@ Tutor Samuel Cordova-Help with file structre and connection to employee_db
 Figet Installation: [Cloudsmith.com](https://cloudsmith.com/navigator/npm/figlet?source=infosec-jobs.com&utm_term=&utm_campaign=&utm_source=google&utm_medium=cpc&hsa_acc=2785245595&hsa_cam=20960539431&hsa_grp=&hsa_ad=&hsa_src=x&hsa_tgt=&hsa_kw=&hsa_mt=&hsa_net=adwords&hsa_ver=3&gad_source=2&gclid=CjwKCAiA0PuuBhBsEiwAS7fsNWWi1hbv-sETlRUKu6WEwwsq3gBUYMxYA7ixmYlnZNLH4yIsyquGshoCl_YQAvD_BwE)
 
 Figlet Art Generator: [askapache.com](https://www.askapache.com/online-tools/figlet-ascii/)
+
+DESCRIBE query in mysql for debugging: [dev.mysql.com](https://https://dev.mysql.com/doc/refman/8.0/en/describe.html)
 
 # Deployment
 

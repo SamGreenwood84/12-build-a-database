@@ -1,7 +1,7 @@
 USE employee_db;
 
 -- Insert data into the department table
-INSERT INTO department (department_name) VALUES
+INSERT INTO departments (department_name) VALUES
 ('Sales'),
 ('Information Technology'),
 ('Finance'),
@@ -11,7 +11,7 @@ INSERT INTO department (department_name) VALUES
 ('Marketing');
 
 -- Insert data into the role table
-INSERT INTO role (title, salary, department_id) VALUES
+INSERT INTO roles (title, salary, department_id) VALUES
 ('Sales Manager', 150000, 1),
 ('Sales Lead', 100000, 1),
 ('Cyber Security Manager', 100000, 2),
@@ -36,7 +36,7 @@ INSERT INTO managers (first_name, last_name, department_name, role_id) VALUES
 ('Stewie', 'Griffin', 'Security', 11);
 
 -- Insert data into the employee table
-INSERT INTO employee (first_name, last_name, title, salary, manager_id) VALUES
+INSERT INTO employees (first_name, last_name, title, salary, manager_id) VALUES
 ('Eddie', 'Cheddar', 'Sales Lead', 100000, 1),
 ('Crash', 'Bandicoot', 'Account Analyst', 50000, 2),
 ('Kevin', 'Malone', 'Accountant', 60000, 3),
