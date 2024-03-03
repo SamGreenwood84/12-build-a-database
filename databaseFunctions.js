@@ -1,5 +1,5 @@
 // databaseFunctions.js
-
+const connectionPool = require("./Config/connection");
 const inquirer = require("inquirer");
 const {
   viewAllTables,
@@ -7,9 +7,7 @@ const {
   viewAllRoles,
   viewAllEmployees,
   viewAllManagers,
-  viewAllSalaries,
-  startEmployeeInput,
-  startManagerInput,
+  viewAllSalaries
 } = require("./database");
 
 async function viewAllTables() {
@@ -87,12 +85,10 @@ async function viewAllSalaries() {
 }
 
 module.exports = {
-  viewAllTables,
-  viewAllDepartments,
-  viewAllRoles,
-  viewAllEmployees,
-  viewAllManagers,
-  viewAllSalaries,
-  startEmployeeInput,
-  startManagerInput,
-};
+    viewAllTables,
+    viewAllDepartments,
+    viewAllRoles,
+    viewAllEmployees,
+    viewAllManagers,
+    viewAllSalaries,
+  };

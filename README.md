@@ -15,7 +15,6 @@ SQL Challenge: Employee Tracker
 2. NPM Install
 3. Use command node index.js
 
-
 # User Story
 
 AS A business owner
@@ -28,7 +27,9 @@ SO THAT I can help plan for growth and organize employee data
 
 GIVEN a command-line application that accepts user input
 
-WHEN I start the application successfully I am presented with a figlet message "Success!"
+WHEN I start the application
+
+THEN I am presented with a figlet message "Success!"
 
 THEN I am presented with the following options: ? Are you viewing your database or making an entry? 
 
@@ -69,40 +70,77 @@ WHEN I choose to make an entry
 
 THEN I am presented with: ? Are you entering a new department? (Y/N)
 
-WHEN I choose no the questions and input continues
+WHEN I choose No the questions and input continues
 
-WHEN I choose yes 
+WHEN I choose Yes 
 
 THEN I am presented with ? Enter the new department name
 
-WHEN I enter the deparment name i am presented with Inserted new department: Janitorial Services with ID: 11
+WHEN I enter the deparment name I am presented with:
+
+```java
+Inserted new department: Janitorial Services with ID: 11
 Successful department entry!
+```
 
 THEN I am presented with: ? Are you entering a new role? (Y/N)
 
-WHEN I choose no the line of questioning will continue
+WHEN I choose No the questions and input continues
 
-WHEN I choose yes 
+WHEN I choose Yes 
 
-THEN I am presented with ? Enter the new role name:
+THEN I am presented with ? Enter the new role title:
 
-WHEN I enter the new role name
+WHEN I enter the new role title
 
 THEN I am presented with ? Enter the new role salary:
 
 WHEN I enter the salary
 
-THEN I am presetned with: ? Enter the department ID for the new role:
+THEN I am presented with ? Enter the department Id: 
 
-THEN I am prompted to enter the employee’s first name, last name, role, and manager, and that employee is added to the database
+WHEN I enter the deaprtment Id I am presented with: 
 
-WHEN I choose to update an employee role
+```java
+Inserted new role: Janitor with ID: 14
+Successful role entry!
+```
+THEN I am presented with ? Are you entering an employee or a manager? (Use arrow keys)
 
-THEN I am prompted to select an employee to update and their new role and this information is updated in the database
+```java
+> Employee
+  Manager
+```
+WHEN I choose employee 
+
+THEN I am presented with ? Enter employee's first name, Enter employee's last name, role title, salary, manager Id:
+
+WHEN I enter all the requested information
+
+THEN I am presented with 
+
+```java
+Inserted new employee: John Snow with title: Janitor with salary: 40000 with manager Id: 6 with ID: 14
+Successful employee entry!
+```
+
+WHEN I choose manager 
+
+THEN I am presented with ? Enter managers's first name, Enter managers's last name, department name, roleID:
+
+WHEN I enter all the requested information
+
+THEN I am presented with
+
+```java
+Inserted new manager: Jane Eyre with title: Marketing Manager with salary: 90000 with department Id: 7 with ID: 7
+Successful manager entry!
+```
+WHEN I have finished my entires
 
 # References 
 
-Bootcamp Spot MySQL2 for node.js
+Bootcamp Spot MySQL2 for node.js, inquirer
 
 Referenced code from Project 2-Dungeons & Devs: [GitHub Link](https://github.com/Maximilian93B/DungeonsAndDevs.git), Challenge 9 and Challenge 10
 
