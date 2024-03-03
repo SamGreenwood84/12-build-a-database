@@ -3,12 +3,13 @@ const mysql = require("mysql2/promise");
 const { execSync } = require("child_process");
 const path = require("path");
 const fs = require("fs");
+require("dotenv").config(); 
 
 const connectionPool = mysql.createPool({
-  host: "127.0.0.1",
-  user: "root",
-  password: "1111",
-  database: "employee_db",
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_DATABASE,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
@@ -121,25 +122,25 @@ async function insertEmployee(firstName, lastName, roleId, managerId) {
     console.log(`Employee added successfully with ID: ${results.insertId}`);
     return results.insertId;
   } catch (error) {
-    console.error("Error inserting employee:", error.message);
+    console.error(`Error inserting employee: ${error.message}`);
     throw error; // Rethrow the error to handle it in the calling function
   }
 }
 
-async function insertManager(firstName, lastName, departmentId, roleId) {
+async function insertManager(firstName, lastName, deparmentName, roleId) {
   const query =
-    "INSERT INTO managers (first_name, last_name, department_id, role_id) VALUES (?, ?, ?, ?)";
+    "INSERT INTO managers (first_name, last_name, department_name, role_id) VALUES (?, ?, ?, ?)";
 
   try {
     const [results] = await connectionPool.query(query, [
       firstName,
       lastName,
-      departmentId,
+      departmentName,
       roleId,
     ]);
     console.log(`Manager added successfully with ID: ${results.insertId}`);
   } catch (error) {
-    console.error("Error inserting manager:", error.message);
+    console.error(`Error inserting manager: ${error.message}`);
     throw error; // Rethrow the error to handle it in the calling function
   }
 }
@@ -170,7 +171,7 @@ async function insertRoleAndDepartment(roleTitle, departmentName, roleSalary) {
     }
 
     const [rows] = await connectionPool.execute(
-      "INSERT INTO roles (title, department_id, salary) VALUES (?, ?, ?)",
+      "INSERT INTO roles (title, salary, deaprtmentId) VALUES (?, ?, ?)",
       [roleTitle, departmentId, roleSalary]
     );
 
@@ -182,6 +183,7 @@ async function insertRoleAndDepartment(roleTitle, departmentName, roleSalary) {
     console.error(`Error inserting role: ${error.message}`);
     return null;
   }
+}
 
 async function startDepartmentInput() {
   const { departmentName } = await inquirer.prompt([
@@ -335,13 +337,15 @@ async function startEmployeeInput() {
     roleId = response.roleId;
   }
 
+  const employeeData = await getEmployeeDataFromUser(false);
+
   try {
     await insertEmployee(
-      response.firstName,
-      response.lastName,
-      roleId,
-      response.managerId || null
-    );
+      employeeData.firstName, 
+      employeeData.lastName, 
+      employeeData.roleId, 
+      employeeData.managerId);
+
     console.log("Employee added successfully!");
 
     const { makeAnotherEntry } = await inquirer.prompt([
@@ -475,13 +479,15 @@ async function startManagerInput() {
     roleId = response.roleId;
   }
 
+  const employeeData = await getEmployeeDataFromUser(true);
+
   try {
-    await insertEmployee(
-      response.firstName,
-      response.lastName,
-      roleId,
-      response.managerId || null
-    );
+    await insertManager(
+      employeeData.firstName, 
+      employeeData.lastName, 
+      employeeData.departmentId, 
+      employeeData.roleId);
+
     console.log("Manager added successfully!");
 
     const { makeAnotherEntry } = await inquirer.prompt([
@@ -505,42 +511,46 @@ async function startManagerInput() {
 }
 
 async function startInput() {
-  const { usageType } = await inquirer.prompt([
-    {
-      type: "list",
-      name: "usageType",
-      message: "Are you viewing your database or making an entry?",
-      choices: ["View", "Entry"],
-    },
-  ]);
-
-  if (usageType === "View") {
-    const viewOptions = [
-      { name: "View All Tables", func: viewAllTables },
-      { name: "View All Departments", func: viewAllDepartments },
-      { name: "View All Roles", func: viewAllRoles },
-      { name: "View All Employees", func: viewAllEmployees },
-      { name: "View All Managers", func: viewAllManagers },
-      { name: "View All Salaries", func: viewAllSalaries },
-    ];
-
-    const { viewChoice } = await inquirer.prompt([
+  try {
+    const { usageType } = await inquirer.prompt([
       {
         type: "list",
-        name: "viewChoice",
-        message: "Choose an option to view:",
-        choices: viewOptions.map((option) => option.name),
+        name: "usageType",
+        message: "Are you viewing your database or making an entry?",
+        choices: ["View", "Entry"],
       },
     ]);
 
-    const selectedOption = viewOptions.find(
-      (option) => option.name === viewChoice
-    );
-    if (selectedOption && selectedOption.func) {
-      await selectedOption.func();
+    if (usageType === "View") {
+      const viewOptions = [
+        { name: "View All Tables", func: viewAllTables },
+        { name: "View All Departments", func: viewAllDepartments },
+        { name: "View All Roles", func: viewAllRoles },
+        { name: "View All Employees", func: viewAllEmployees },
+        { name: "View All Managers", func: viewAllManagers },
+        { name: "View All Salaries", func: viewAllSalaries },
+      ];
+
+      const { viewChoice } = await inquirer.prompt([
+        {
+          type: "list",
+          name: "viewChoice",
+          message: "Choose an option to view:",
+          choices: viewOptions.map((option) => option.name),
+        },
+      ]);
+
+      const selectedOption = viewOptions.find(
+        (option) => option.name === viewChoice
+      );
+      if (selectedOption && selectedOption.func) {
+        await selectedOption.func();
+      }
+    } else {
+      await startEntryProcess();
     }
-  } else {
-    await startEntryProcess();
+  } catch (error) {
+    console.error("Error in startInput:", error);
   }
 }
 

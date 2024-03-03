@@ -28,13 +28,11 @@ SO THAT I can help plan for growth and organize employee data
 
 GIVEN a command-line application that accepts user input
 
-WHEN I start the application
-
-THEN I am presented with a figlet message "Success!"
+WHEN I start the application successfully I am presented with a figlet message "Success!"
 
 THEN I am presented with the following options: ? Are you viewing your database or making an entry? 
 
-WHEN I choose to view 
+WHEN I choose to View 
 
 THEN I am presented with a set of options in the command line
 
