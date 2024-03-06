@@ -9,5 +9,13 @@
   "scripts": {
     "start": "node index.js",
     "seed": "node db/seedData.sql"
-  }
+  },
+  "name": "12-employee-database",
+  "description": "SQL Challenge: Employee Tracker",
+  "version": "1.0.0",
+  "main": "index.js",
+  "devDependencies": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }

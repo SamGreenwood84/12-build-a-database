@@ -136,7 +136,7 @@ THEN I am presented with
 Inserted new manager: Jane Eyre with title: Marketing Manager with salary: 90000 with department Id: 7 with ID: 7
 Successful manager entry!
 ```
-WHEN I have finished my entires
+WHEN I have finished my entires the database will Exit me automatically
 
 # References 
 
