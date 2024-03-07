@@ -52,10 +52,18 @@ const employeeQuestions = [
   ...commonEmployeeQuestions,
   {
     type: "input",
-    name: "roleId",
-    message: "Enter their role ID:",
+    name: "title",
+    message: "Enter their role title:",
     validate: function (input) {
-      return /^\d+$/.test(input) || "Please enter a valid role ID (numeric).";
+      return input.trim() !== "" || "Enter a valid role title";
+    },
+  },
+  {
+    type: "input",
+    name: "salary",
+    message: "Enter the new role salary:",
+    validate: function (input) {
+      return /^\d+$/.test(input) || "Please enter a valid salary (numeric).";
     },
   },
   {
@@ -88,20 +96,40 @@ const managerQuestions = [
   },
 ];
 
+const roleQuestions = [
+{
+  type: "input",
+  name: "roleTitle",
+  message: "Enter the new role name:",
+  validate: function (input) {
+    return input.trim() !== "" || "Invalid entry";
+  },
+},
+{
+  type: "input",
+  name: "roleSalary",
+  message: "Enter the new role salary:",
+  validate: function (input) {
+    const isValid = /^\d+$/.test(input) && parseFloat(input) > 0;
+    return isValid || "Please enter a valid positive salary (numeric).";
+  },
+},
+]
+
 const entryTypeQuestions = [
   {
     type: "list",
     name: "entryType",
-    message: "Are you entering an employee or a manager?",
-    choices: ["Employee", "Manager"]
+    message: "Are you entering an employee, manager, department or role?",
+    choices: ["Employee", "Manager", "Department", "Role"]
   },
 ];
 
-async function insertEmployee(employeeData, roleSalary) {
+async function insertEmployee(employeeData) {
   try {
     const [existingEmployee] = await connectionPool.execute(
-      'SELECT id FROM employees WHERE first_name = ? AND last_name = ? AND role_id = ? AND manager_name = ?',
-      [employeeData.firstName, employeeData.lastName, employeeData.roleId, employeeData.managerName]
+      'SELECT id FROM employees WHERE first_name = ? AND last_name = ? AND title = ? AND salary = ? AND manager_id = ?',
+      [employeeData.firstName, employeeData.lastName, employeeData.title, employeeData.salary, employeeData.managerId]
     );
 
     if (existingEmployee.length) {
@@ -109,9 +137,16 @@ async function insertEmployee(employeeData, roleSalary) {
       return;
     }
 
+    // Validate manager_id before inserting
+    const managerId = parseInt(employeeData.managerId, 10);
+    if (isNaN(managerId)) {
+      console.error('Invalid manager_id. Please provide a valid integer value.');
+      return;
+    }
+
     const [rows] = await connectionPool.execute(
-      'INSERT INTO employees (first_name, last_name, role_id, manager_name, salary) VALUES (?, ?, ?, ?, ?)',
-      [employeeData.firstName, employeeData.lastName, employeeData.roleId, employeeData.managerName, roleSalary]
+      'INSERT INTO employees (first_name, last_name, title, salary, manager_id) VALUES (?, ?, ?, ?, ?)',
+      [employeeData.firstName, employeeData.lastName, employeeData.title, employeeData.salary, managerId]
     );
 
     console.log(`Inserted employee: ${employeeData.firstName} ${employeeData.lastName} with ID: ${rows.insertId}`);
@@ -135,11 +170,11 @@ async function insertManager(firstName, lastName, departmentName, roleId) {
   }
 }
 
-async function insertRole(roleName, departmentName, roleSalary) {
+async function insertRole(title, salary, departmentId) {
   try {
     const [existingRole] = await connectionPool.execute(
-      'SELECT id FROM roles WHERE title = ? AND department_id IN (SELECT id FROM department WHERE department_name = ?)',
-      [roleName, departmentName]
+      'SELECT id FROM roles WHERE title = ? AND salary = ? AND department_id = ?',
+      [title, salary, departmentId]
     );
 
     if (existingRole.length) {
@@ -148,11 +183,11 @@ async function insertRole(roleName, departmentName, roleSalary) {
     }
 
     const [rows] = await connectionPool.execute(
-      'INSERT INTO roles (title, department_id, salary) VALUES (?, (SELECT id FROM department WHERE department_name = ?), ?)',
-      [roleName, departmentName, roleSalary]
+      'INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?)',
+      [title, salary, departmentId]
     );
 
-    console.log(`Successful role entry! New role: ${roleName} with ID: ${rows.insertId}`);
+    console.log(`Successful role entry! New role: ${title} with ID: ${rows.insertId}`);
     return rows.insertId;
   } catch (error) {
     console.error('Error inserting role:', error);
@@ -191,6 +226,7 @@ async function insertDepartment(departmentName) {
   }
 }
 
+
 function displayEntryDetails(data) {
   console.log(`Congratulations! You've made a successful entry!\n`);
   console.log("Entry Details:");
@@ -217,139 +253,85 @@ async function startManagerInput() {
   await insertManager(firstName, lastName, departmentName, roleId);
 }
 
-async function startDepartmentInput() {
-  const { isNewDepartment, departmentName } = await inquirer.prompt([
+async function startEmployeeInput() {
+
+  const employeeData = await inquirer.prompt(employeeQuestions);
+  console.log(employeeData);
+
+  insertEmployee(employeeData);
+}
+
+async function startRoleInput() {
+  const roleData = await inquirer.prompt([
     {
-      type: "confirm",
-      name: "isNewDepartment",
-      message: "Is this a new department? (Y/N)",
+      type: "input",
+      name: "roleTitle",
+      message: "Enter the new role title:",
+      validate: function (input) {
+        return input.trim() !== "" || "Invalid entry";
+      },
     },
     {
       type: "input",
+      name: "roleSalary",
+      message: "Enter the new role salary:",
+      validate: function (input) {
+        const isValid = /^\d+(\.\d{1,2})?$/.test(input) && parseFloat(input) > 0;
+        return isValid || "Please enter a valid positive salary (numeric).";
+      },
+    },
+  ]);
+
+  const departmentName = await inquirer.prompt([
+    {
+      type: "input",
       name: "departmentName",
-      message: "Enter the department name:",
+      message: "Enter the department name for the role:",
       validate: function (input) {
         return input.trim() !== "" || "Invalid entry";
       },
     },
   ]);
 
-  if (isNewDepartment) {
-    const departmentId = await insertDepartment(departmentName);
-    await startRoleInput(departmentId);
+  roleData.departmentName = departmentName.departmentName;
+
+  const isConfirmed = await confirmDetails(roleData);
+
+  if (isConfirmed) {
+    const roleId = await insertRole(roleData.roleTitle, roleData.roleSalary, roleData.departmendId);
+    if (roleId) {
+      console.log(`Inserted role with ID: ${roleId}`);
+    } else {
+      console.log("Error inserting role.");
+    }
   } else {
-    await startRoleInput();
+    console.log("Entry canceled by user.");
   }
 }
 
-async function startRoleInput(departmentId) {
-  const { isNewRole } = await inquirer.prompt([
+async function startDepartmentInput() {
+  const departmentData = await inquirer.prompt([
     {
-      type: "confirm",
-      name: "isNewRole",
-      message: "Is this a new role?",
+      type: "input",
+      name: "departmentName",
+      message: "Enter the new department name:",
+      validate: function (input) {
+        return input.trim() !== "" || "Invalid entry";
+      },
     },
   ]);
 
-  if (isNewRole) {
-    const { roleName, roleSalary } = await inquirer.prompt([
-      {
-        type: "input",
-        name: "roleName",
-        message: "Enter the new role name:",
-        validate: function (input) {
-          return input.trim() !== "" || "Invalid entry";
-        },
-      },
-      {
-        type: "input",
-        name: "roleSalary",
-        message: "Enter the new role salary:",
-        validate: function (input) {
-          return /^\d+$/.test(input) || "Please enter a valid salary (numeric).";
-        },
-      },
-    ]);
-
-    await insertRole(roleName, departmentId, roleSalary);
-    await startEmployeeInput();
-  } else {
-    const { roleId } = await inquirer.prompt([
-      {
-        type: "input",
-        name: "roleId",
-        message: "Enter the existing role ID:",
-        validate: function (input) {
-          return /^\d+$/.test(input) || "Please enter a valid role ID (numeric).";
-        },
-      },
-    ]);
-
-    await startEmployeeInput();
-  }
-}
-
-async function startEmployeeInput() {
-  let roleName = null;
-  let roleIdToUpdate = null;
-  let roleSalary = null;
-
-  const { firstName, lastName, isNewRole, roleId, managerId } = await inquirer.prompt(employeeQuestions);
-
-  if (isNewRole) {
-    const response = await inquirer.prompt([
-      {
-        type: "input",
-        name: "roleName",
-        message: "Enter the role name:",
-        validate: function (input) {
-          return input.trim() !== "" || "Invalid entry";
-        },
-      },
-      {
-        type: "input",
-        name: "roleSalary",
-        message: "Enter the role salary:",
-        validate: function (input) {
-          return /^\d+$/.test(input) || "Please enter a valid salary (numeric).";
-        },
-      },
-    ]);
-
-    roleName = response.roleName;
-    roleSalary = response.roleSalary;
-
-    const newRoleId = await insertRole(roleName, null, roleSalary);
-    roleIdToUpdate = newRoleId || roleId;
-  } else {
-    const roleQuestionIndex = employeeQuestions.findIndex((question) => question.name === "roleId");
-    if (roleQuestionIndex !== -1) {
-      employeeQuestions.splice(roleQuestionIndex, 1);
-    }
-    roleIdToUpdate = roleId;
-  }
-
-  const [roleRow] = await connectionPool.execute('SELECT title FROM roles WHERE id = ?', [roleIdToUpdate]);
-  const roleTitle = roleRow.length ? roleRow[0].title : null;
-  console.log(`Role: ${roleTitle || 'Unknown'}`);
-
-  const managerName = managerId ? await getManagerName(managerId) : null;
-  console.log(`Manager: ${managerName || 'Unknown'}`);
-
-  const employeeData = { firstName, lastName, roleId: roleIdToUpdate, managerName };
-  const isConfirmed = await confirmDetails(employeeData);
+  const isConfirmed = await confirmDetails(departmentData);
 
   if (isConfirmed) {
-    await insertEmployee(employeeData, roleSalary);
-    console.log('______________________________________________________________________________');
-    console.log("Congratulations! You've made a successful employee entry!");
-    console.log('______________________________________________________________________________');
-    console.log("Crtl + C to Exit Database");
-    console.log('______________________________________________________________________________');
-    displayEntryDetails(employeeData);
+    const departmentId = await insertDepartment(departmentData.departmentName);
+    if (departmentId) {
+      console.log(`Inserted department with ID: ${departmentId}`);
+    } else {
+      console.log("Error inserting department.");
+    }
   } else {
-    console.log("Entry canceled. Starting over...");
-    await startEmployeeInput();
+    console.log("Entry canceled by user.");
   }
 }
 
@@ -398,6 +380,10 @@ async function startEntryProcess() {
     await startEmployeeInput();
   } else if (entryType === "Manager") {
     await startManagerInput();
+  }else if (entryType === "Department") {
+    await startDepartmentInput();
+  }else if (entryType === "Role") {
+    await startRoleInput();
   }
 }
 
