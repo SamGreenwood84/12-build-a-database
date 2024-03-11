@@ -501,6 +501,39 @@ async function editTable(tableName) {
   }
 }
 
+// Function to get edit parameters for a specific table
+async function getEditParams(tableName, editFields) {
+  const editParams = {
+    departments: ["departmentName"],
+    // Add similar entries for other tables
+  };
+
+  const prompts = [];
+  for (const field of editParams[tableName]) {
+    if (editFields.includes(field)) {
+      prompts.push({
+        type: 'input',
+        name: field,
+        message: `Enter the new ${field.toLowerCase()}:`,
+      });
+    }
+  }
+
+  const newData = await inquirer.prompt(prompts);
+
+  if (tableName === "departments") {
+    newData.departmentId = await inquirer.prompt([
+      {
+        type: 'input',
+        name: 'departmentId',
+        message: 'Enter the department ID you want to edit:',
+      },
+    ]);
+  }
+  
+  return { ...newData };
+}
+
 // Function to get the choices for specific fields to edit based on the table
 function getEditFieldChoices(tableName) {
   switch (tableName) {
@@ -594,9 +627,14 @@ async function editRoles(editFields) {
 
 async function editDepartments(editFields) {
   try {
+    const { departmentId, newData } = await getEditParams(
+      "departments",
+      editFields
+    );
+
     // Check if the department exists
     const [existingDepartment] = await connectionPool.execute(
-      "SELECT * FROM departments WHERE id = ?",
+      'SELECT * FROM departments WHERE id = ?',
       [departmentId]
     );
 
@@ -607,18 +645,18 @@ async function editDepartments(editFields) {
 
     // Update department data
     await connectionPool.execute(
-      "UPDATE departments SET department_name = ? WHERE id = ?",
-      [newData.departmentName || null, departmentId]
+      'UPDATE departments SET department_name = ? WHERE id = ?',
+      [newData.departmentName, departmentId]
     );
 
     console.log(`Successfully updated department with ID: ${departmentId}`);
     console.log("Updated Department Details:");
     console.log("---------------------------");
-    console.log(`Department Name: ${newData.departmentName || "N/A"}`);
+    console.log(`Department Name: ${newData.departmentName}`);
     console.log("---------------------------");
-    await askExitOrStartOver();
+    await askExitOrStartOver(); // Ask the user if they want to exit or start over
   } catch (error) {
-    console.error("Error editing department:", error);
+    console.error('Error editing department:', error);
   }
 }
 
