@@ -14,6 +14,7 @@ const connectionPool = mysql.createPool({
   queueLimit: 0,
 });
 
+//Function to display Figlet message
 function displaySuccessMessage() {
   try {
     const figletText = fs.readFileSync(
@@ -32,6 +33,7 @@ console.log(".............................................");
 console.log("Welcome to Your Employee Database!");
 console.log("Enter employee details to add to the database.");
 
+//Questions for employee and manager names
 const commonEmployeeQuestions = [
   {
     type: "input",
@@ -52,6 +54,7 @@ const commonEmployeeQuestions = [
   },
 ];
 
+//Function to exit or start over after tables or successful entries
 async function askExitOrStartOver() {
   const { exitOrStartOver } = await inquirer.prompt([
     {
@@ -70,7 +73,7 @@ async function askExitOrStartOver() {
     await startInput();
   }
 }
-
+//Questions for employee table
 const employeeQuestions = [
   ...commonEmployeeQuestions,
   {
@@ -102,7 +105,7 @@ const employeeQuestions = [
     },
   },
 ];
-
+//Questions for manager table
 const managerQuestions = [
   ...commonEmployeeQuestions,
   {
@@ -122,7 +125,7 @@ const managerQuestions = [
     },
   },
 ];
-
+//Questions for role table
 const roleQuestions = [
   {
     type: "input",
@@ -152,7 +155,7 @@ const roleQuestions = [
     },
   },
 ];
-
+//Entry questions
 const entryTypeQuestions = [
   {
     type: "list",
@@ -161,7 +164,7 @@ const entryTypeQuestions = [
     choices: ["Employee", "Manager", "Department", "Role"],
   },
 ];
-
+//function to insert employee data input to employee table
 async function insertEmployee(employeeData) {
   try {
     const [existingEmployee] = await connectionPool.execute(
@@ -209,7 +212,7 @@ async function insertEmployee(employeeData) {
   }
 
 }
-
+//Function to insert manager input to manager table
 async function insertManager(firstName, lastName, departmentName, roleId) {
   try {
     const [rows] = await connectionPool.execute(
@@ -224,7 +227,7 @@ async function insertManager(firstName, lastName, departmentName, roleId) {
     console.error('Error inserting manager:', error);
   }
 }
-
+//Function to insert role data input to riole table
 async function insertRole(title, salary, departmentId) {
   try {
     const [existingRole] = await connectionPool.execute(
@@ -250,7 +253,7 @@ async function insertRole(title, salary, departmentId) {
     return null;
   }
 }
-
+//Function to insert department data input into department table
 async function insertDepartment(departmentName) {
   try {
     if (!departmentName) {
@@ -284,7 +287,7 @@ async function insertDepartment(departmentName) {
     return null;
   }
 }
-
+//function to display the entry details of a successful entry
 function displayEntryDetails(data) {
   console.log(`Congratulations! You've made a successful entry!\n`);
   console.log("Entry Details:");
@@ -295,7 +298,7 @@ function displayEntryDetails(data) {
   console.log(`Role ID: ${data.roleId || "N/A"}`);
   console.log("--------------\n");
 }
-
+//Function to display the manager name instead of the manager id when viewed in tables
 async function getManagerName(managerId) {
   const [managerRow] = await connectionPool.execute(
     "SELECT first_name, last_name FROM managers WHERE id = ?",
@@ -327,7 +330,7 @@ async function startEmployeeInput() {
 
   insertEmployee(employeeData);
 }
-
+//Function to start role questions in command line
 async function startRoleInput() {
   const roleData = await inquirer.prompt([
     {
@@ -380,7 +383,7 @@ async function startRoleInput() {
     console.log("Entry canceled by user.");
   }
 }
-
+//Function to start department questions in the command line
 async function startDepartmentInput() {
   const departmentData = await inquirer.prompt([
     {
@@ -406,7 +409,7 @@ async function startDepartmentInput() {
     console.log("Entry canceled by user.");
   }
 }
-
+//Function to ask user what they want to do in the database
 async function startInput() {
   const { usageType } = await inquirer.prompt([
     {
@@ -425,7 +428,7 @@ async function startInput() {
     await startEntryProcess();
   }
 }
-
+//Function to view all the tables in the employee_db
 async function handleViewOptions() {
   const viewOptions = [
     { name: "View All Tables", func: viewAllTables },
@@ -452,7 +455,7 @@ async function handleViewOptions() {
     await selectedOption.func();
   }
 }
-
+//Function view the choices of tables to edit
 async function handleEditOptions() {
   const { editTableChoice } = await inquirer.prompt([
     {
@@ -463,136 +466,21 @@ async function handleEditOptions() {
     },
   ]);
 
-  // Add an "Edit" section
   console.log(`Editing ${editTableChoice}...`);
-
-  // Call the generic editTable function
   await editTable(editTableChoice);
 }
 
-async function editTable(tableName) {
+/*async function editTable(tableName) {
   // logic to edit the specified table
 await editEmployees();
 await editRoles();
 await editDepartments();
 await editManagers();
 }
-
-  async function editEmployees(employeeId, newData) {
-    try {
-      // Check if the employee exists
-      const [existingEmployee] = await connectionPool.execute(
-        'SELECT * FROM employees WHERE id = ?',
-        [employeeId]
-      );
-  
-      if (!existingEmployee.length) {
-        console.log(`Employee with ID ${employeeId} not found.`);
-        return;
-      }
-  
-      // Update employee data
-      await connectionPool.execute(
-        'UPDATE employees SET first_name = ?, last_name = ?, title = ?, salary = ?, manager_id = ? WHERE id = ?',
-        [newData.firstName, newData.lastName, newData.title, newData.salary, newData.managerId, employeeId]
-      );
-  
-      console.log(`Successfully updated employee with ID: ${employeeId}`);
-      displayEntryDetails(newData); // Display the updated employee details
-      await askExitOrStartOver(); // Ask the user if they want to exit or start over
-    } catch (error) {
-      console.error('Error editing employee:', error);
-    }
-  }
-
-  async function editRoles(roleId, newData) {
-    try {
-      // Check if the role exists
-      const [existingRole] = await connectionPool.execute(
-        'SELECT * FROM roles WHERE id = ?',
-        [roleId]
-      );
-  
-      if (!existingRole.length) {
-        console.log(`Role with ID ${roleId} not found.`);
-        return;
-      }
-  
-      // Update role data
-      await connectionPool.execute(
-        'UPDATE roles SET title = ?, salary = ?, department_id = ? WHERE id = ?',
-        [newData.roleTitle, newData.roleSalary, newData.departmentId, roleId]
-      );
-  
-      console.log(`Successfully updated role with ID: ${roleId}`);
-      console.log("Updated Role Details:");
-      console.log("-----------------------");
-      console.log(`Title: ${newData.roleTitle}`);
-      console.log(`Salary: ${newData.roleSalary}`);
-      console.log(`Department ID: ${newData.departmentId}`);
-      console.log("-----------------------");
-      await askExitOrStartOver(); // Ask the user if they want to exit or start over
-    } catch (error) {
-      console.error('Error editing role:', error);
-    }
-  }
-
-  async function editDepartments(departmentId, newData) {
-    try {
-      // Check if the department exists
-      const [existingDepartment] = await connectionPool.execute(
-        'SELECT * FROM departments WHERE id = ?',
-        [departmentId]
-      );
-  
-      if (!existingDepartment.length) {
-        console.log(`Department with ID ${departmentId} not found.`);
-        return;
-      }
-  
-      // Update department data
-      await connectionPool.execute(
-        'UPDATE departments SET department_name = ? WHERE id = ?',
-        [newData.departmentName, departmentId]
-      );
-  
-      console.log(`Successfully updated department with ID: ${departmentId}`);
-      console.log("Updated Department Details:");
-      console.log("---------------------------");
-      console.log(`Department Name: ${newData.departmentName}`);
-      console.log("---------------------------");
-      await askExitOrStartOver(); // Ask the user if they want to exit or start over
-    } catch (error) {
-      console.error('Error editing department:', error);
-    }
-  }
-
-  async function editManagers(managerId, newData) {
-    try {
-      // Check if the manager exists
-      const [existingManager] = await connectionPool.execute(
-        'SELECT * FROM managers WHERE id = ?',
-        [managerId]
-      );
-  
-      if (!existingManager.length) {
-        console.log(`Manager with ID ${managerId} not found.`);
-        return;
-      }
-  
-      // Update manager data
-      await connectionPool.execute(
-        'UPDATE managers SET first_name = ?, last_name = ?, department_name = ?, role_id = ? WHERE id = ?',
-        [newData.firstName, newData.lastName, newData.departmentName, newData.roleId, managerId]
-      );
-  
-      console.log(`Successfully updated manager with ID: ${managerId}`);
-      displayEntryDetails(newData); // Display the updated manager details
-      await askExitOrStartOver(); // Ask the user if they want to exit or start over
-    } catch (error) {
-      console.error('Error editing manager:', error);
-    }
-  }
+// async function editEmployees() {
+// async function editRoles() {
+// async function editDepartments() {
+// async function editManagers() {*/
 
 async function startEntryProcess() {
   const { entryType } = await inquirer.prompt(entryTypeQuestions);
