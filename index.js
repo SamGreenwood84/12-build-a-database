@@ -1,25 +1,28 @@
 const inquirer = require("inquirer");
 const mysql = require("mysql2/promise");
-const { execSync } = require('child_process');
-const path = require('path');
-const fs = require('fs');
+const { execSync } = require("child_process");
+const path = require("path");
+const fs = require("fs");
 
 const connectionPool = mysql.createPool({
-  host: '127.0.0.1',
-  user: 'root',
-  password: '1111',
-  database: 'employee_db',
+  host: "127.0.0.1",
+  user: "root",
+  password: "1111",
+  database: "employee_db",
   waitForConnections: true,
   connectionLimit: 10,
-  queueLimit: 0
+  queueLimit: 0,
 });
 
 function displaySuccessMessage() {
   try {
-    const figletText = fs.readFileSync(path.join(__dirname, 'Success.txt'), 'utf8');
-    execSync(`figlet Success! ${figletText}`, { stdio: 'inherit' });
+    const figletText = fs.readFileSync(
+      path.join(__dirname, "Success.txt"),
+      "utf8"
+    );
+    execSync(`figlet EmployeeDatabase ${figletText}`, { stdio: "inherit" });
   } catch (error) {
-    console.error('Error displaying Figlet message:', error.message);
+    console.error("Error displaying Figlet message:", error.message);
   }
 }
 
@@ -45,8 +48,28 @@ const commonEmployeeQuestions = [
     validate: function (input) {
       return input.trim() !== "" || "Invalid entry";
     },
+
   },
 ];
+
+async function askExitOrStartOver() {
+  const { exitOrStartOver } = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'exitOrStartOver',
+      message: 'Do you want to exit or start over?',
+      choices: ['Exit', 'Start Over'],
+    },
+  ]);
+
+  if (exitOrStartOver === 'Exit') {
+    console.log('Exiting the application. Goodbye!');
+    process.exit(0); // Exit the application with a success code
+  } else {
+    console.log('Starting over...');
+    await startInput();
+  }
+}
 
 const employeeQuestions = [
   ...commonEmployeeQuestions,
@@ -71,7 +94,11 @@ const employeeQuestions = [
     name: "managerId",
     message: "Enter the employee's manager ID (optional, press Enter to skip):",
     validate: function (input) {
-      return input === "" || /^\d+$/.test(input) || "Please enter a valid manager ID (numeric) or leave it empty.";
+      return (
+        input === "" ||
+        /^\d+$/.test(input) ||
+        "Please enter a valid manager ID (numeric) or leave it empty."
+      );
     },
   },
 ];
@@ -97,39 +124,55 @@ const managerQuestions = [
 ];
 
 const roleQuestions = [
-{
-  type: "input",
-  name: "roleTitle",
-  message: "Enter the new role name:",
-  validate: function (input) {
-    return input.trim() !== "" || "Invalid entry";
+  {
+    type: "input",
+    name: "roleTitle",
+    message: "Enter the new role name:",
+    validate: function (input) {
+      return input.trim() !== "" || "Invalid entry";
+    },
   },
-},
-{
-  type: "input",
-  name: "roleSalary",
-  message: "Enter the new role salary:",
-  validate: function (input) {
-    const isValid = /^\d+$/.test(input) && parseFloat(input) > 0;
-    return isValid || "Please enter a valid positive salary (numeric).";
+  {
+    type: "input",
+    name: "roleSalary",
+    message: "Enter the new role salary:",
+    validate: function (input) {
+      const isValid = /^\d+$/.test(input) && parseFloat(input) > 0;
+      return isValid || "Please enter a valid positive salary (numeric).";
+    },
   },
-},
-]
+  {
+    type: "input",
+    name: "departmentId",
+    message: "Enter the manager's department ID:",
+    validate: function (input) {
+      return (
+        /^\d+$/.test(input) || "Please enter a valid department ID (numeric)."
+      );
+    },
+  },
+];
 
 const entryTypeQuestions = [
   {
     type: "list",
     name: "entryType",
     message: "Are you entering an employee, manager, department or role?",
-    choices: ["Employee", "Manager", "Department", "Role"]
+    choices: ["Employee", "Manager", "Department", "Role"],
   },
 ];
 
 async function insertEmployee(employeeData) {
   try {
     const [existingEmployee] = await connectionPool.execute(
-      'SELECT id FROM employees WHERE first_name = ? AND last_name = ? AND title = ? AND salary = ? AND manager_id = ?',
-      [employeeData.firstName, employeeData.lastName, employeeData.title, employeeData.salary, employeeData.managerId]
+      "SELECT id FROM employees WHERE first_name = ? AND last_name = ? AND title = ? AND salary = ? AND manager_id = ?",
+      [
+        employeeData.firstName,
+        employeeData.lastName,
+        employeeData.title,
+        employeeData.salary,
+        employeeData.managerId,
+      ]
     );
 
     if (existingEmployee.length) {
@@ -140,31 +183,43 @@ async function insertEmployee(employeeData) {
     // Validate manager_id before inserting
     const managerId = parseInt(employeeData.managerId, 10);
     if (isNaN(managerId)) {
-      console.error('Invalid manager_id. Please provide a valid integer value.');
+      console.error(
+        "Invalid manager_id. Please provide a valid integer value."
+      );
       return;
     }
 
     const [rows] = await connectionPool.execute(
-      'INSERT INTO employees (first_name, last_name, title, salary, manager_id) VALUES (?, ?, ?, ?, ?)',
-      [employeeData.firstName, employeeData.lastName, employeeData.title, employeeData.salary, managerId]
+      "INSERT INTO employees (first_name, last_name, title, salary, manager_id) VALUES (?, ?, ?, ?, ?)",
+      [
+        employeeData.firstName,
+        employeeData.lastName,
+        employeeData.title,
+        employeeData.salary,
+        managerId,
+      ]
     );
 
-    console.log(`Inserted employee: ${employeeData.firstName} ${employeeData.lastName} with ID: ${rows.insertId}`);
-    displayEntryDetails(employeeData);
+    console.log(
+      `Inserted employee: ${employeeData.firstName} ${employeeData.lastName} as ${employeeData.title} with ID: ${rows.insertId}`
+    );
+    await askExitOrStartOver(); // Ask the user if they want to exit or start over
   } catch (error) {
-    console.error('Error inserting employee:', error);
+    console.error("Error inserting employee:", error);
   }
+
 }
 
 async function insertManager(firstName, lastName, departmentName, roleId) {
   try {
     const [rows] = await connectionPool.execute(
-      'INSERT INTO managers (first_name, last_name, department_name, role_id) VALUES (?, ?, ?, ?)',
+      "INSERT INTO managers (first_name, last_name, department_name, role_id) VALUES (?, ?, ?, ?)",
       [firstName, lastName, departmentName, roleId]
     );
 
     console.log(`Inserted manager: ${firstName} ${lastName} with ID: ${rows.insertId}`);
     displayEntryDetails({ firstName, lastName, departmentName, roleId });
+    await askExitOrStartOver(); 
   } catch (error) {
     console.error('Error inserting manager:', error);
   }
@@ -173,7 +228,7 @@ async function insertManager(firstName, lastName, departmentName, roleId) {
 async function insertRole(title, salary, departmentId) {
   try {
     const [existingRole] = await connectionPool.execute(
-      'SELECT id FROM roles WHERE title = ? AND salary = ? AND department_id = ?',
+      "SELECT id FROM roles WHERE title = ? AND salary = ? AND department_id = ?",
       [title, salary, departmentId]
     );
 
@@ -183,11 +238,12 @@ async function insertRole(title, salary, departmentId) {
     }
 
     const [rows] = await connectionPool.execute(
-      'INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?)',
+      "INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?)",
       [title, salary, departmentId]
     );
 
     console.log(`Successful role entry! New role: ${title} with ID: ${rows.insertId}`);
+    await askExitOrStartOver(); 
     return rows.insertId;
   } catch (error) {
     console.error('Error inserting role:', error);
@@ -203,29 +259,31 @@ async function insertDepartment(departmentName) {
     }
 
     const [existingDepartment] = await connectionPool.execute(
-      'SELECT id FROM departments WHERE department_name = ?',
+      "SELECT id FROM departments WHERE department_name = ?",
       [departmentName]
     );
 
     if (existingDepartment.length) {
-      console.log(`Department already exists with ID: ${existingDepartment[0].id}`);
+      console.log(
+        `Department already exists with ID: ${existingDepartment[0].id}`
+      );
       return existingDepartment[0].id;
     }
 
     const [rows] = await connectionPool.execute(
-      'INSERT INTO departments (department_name) VALUES (?)',
+      "INSERT INTO departments (department_name) VALUES (?)",
       [departmentName]
     );
 
     console.log(`Inserted new department: ${departmentName} with ID: ${rows.insertId}`);
     console.log("Successful department entry!");
+    await askExitOrStartOver(); 
     return rows.insertId;
   } catch (error) {
-    console.error('Error inserting department:', error);
+    console.error("Error inserting department:", error);
     return null;
   }
 }
-
 
 function displayEntryDetails(data) {
   console.log(`Congratulations! You've made a successful entry!\n`);
@@ -233,28 +291,37 @@ function displayEntryDetails(data) {
   console.log("--------------");
   console.log(`First Name: ${data.firstName}`);
   console.log(`Last Name: ${data.lastName}`);
-  console.log(`Department Name: ${data.departmentName || 'N/A'}`);
-  console.log(`Role ID: ${data.roleId || 'N/A'}`);
+  console.log(`Department Name: ${data.departmentName || "N/A"}`);
+  console.log(`Role ID: ${data.roleId || "N/A"}`);
   console.log("--------------\n");
 }
 
 async function getManagerName(managerId) {
-  const [managerRow] = await connectionPool.execute('SELECT first_name, last_name FROM managers WHERE id = ?', [managerId]);
-  return managerRow.length ? `${managerRow[0].first_name} ${managerRow[0].last_name}` : null;
+  const [managerRow] = await connectionPool.execute(
+    "SELECT first_name, last_name FROM managers WHERE id = ?",
+    [managerId]
+  );
+  return managerRow.length
+    ? `${managerRow[0].first_name} ${managerRow[0].last_name}`
+    : null;
 }
 
 async function startManagerInput() {
-  const { firstName, lastName, departmentName, roleId } = await inquirer.prompt(managerQuestions);
+  const { firstName, lastName, departmentName, roleId } = await inquirer.prompt(
+    managerQuestions
+  );
 
-  const [roleRow] = await connectionPool.execute('SELECT title FROM roles WHERE id = ?', [roleId]);
+  const [roleRow] = await connectionPool.execute(
+    "SELECT title FROM roles WHERE id = ?",
+    [roleId]
+  );
   const roleTitle = roleRow.length ? roleRow[0].title : null;
-  console.log(`Role: ${roleTitle || 'Unknown'}`);
+  console.log(`Role: ${roleTitle || "Unknown"}`);
 
   await insertManager(firstName, lastName, departmentName, roleId);
 }
 
 async function startEmployeeInput() {
-
   const employeeData = await inquirer.prompt(employeeQuestions);
   console.log(employeeData);
 
@@ -276,7 +343,8 @@ async function startRoleInput() {
       name: "roleSalary",
       message: "Enter the new role salary:",
       validate: function (input) {
-        const isValid = /^\d+(\.\d{1,2})?$/.test(input) && parseFloat(input) > 0;
+        const isValid =
+          /^\d+(\.\d{1,2})?$/.test(input) && parseFloat(input) > 0;
         return isValid || "Please enter a valid positive salary (numeric).";
       },
     },
@@ -286,19 +354,23 @@ async function startRoleInput() {
     {
       type: "input",
       name: "departmentName",
-      message: "Enter the department name for the role:",
+      message: "Enter the department ID for the role:",
       validate: function (input) {
         return input.trim() !== "" || "Invalid entry";
       },
     },
   ]);
 
-  roleData.departmentName = departmentName.departmentName;
+  roleData.departmentId = departmentName.departmentName;
 
   const isConfirmed = await confirmDetails(roleData);
 
   if (isConfirmed) {
-    const roleId = await insertRole(roleData.roleTitle, roleData.roleSalary, roleData.departmendId);
+    const roleId = await insertRole(
+      roleData.roleTitle,
+      roleData.roleSalary,
+      roleData.departmentId
+    );
     if (roleId) {
       console.log(`Inserted role with ID: ${roleId}`);
     } else {
@@ -341,7 +413,7 @@ async function startInput() {
       type: "list",
       name: "usageType",
       message: "Are you viewing your database or making an entry?",
-      choices: ["View", "Entry"]
+      choices: ["View", "Entry"],
     },
   ]);
 
@@ -360,11 +432,13 @@ async function startInput() {
         type: "list",
         name: "viewChoice",
         message: "Choose an option to view:",
-        choices: viewOptions.map(option => option.name)
+        choices: viewOptions.map((option) => option.name),
       },
     ]);
 
-    const selectedOption = viewOptions.find(option => option.name === viewChoice);
+    const selectedOption = viewOptions.find(
+      (option) => option.name === viewChoice
+    );
     if (selectedOption && selectedOption.func) {
       await selectedOption.func();
     }
@@ -380,9 +454,9 @@ async function startEntryProcess() {
     await startEmployeeInput();
   } else if (entryType === "Manager") {
     await startManagerInput();
-  }else if (entryType === "Department") {
+  } else if (entryType === "Department") {
     await startDepartmentInput();
-  }else if (entryType === "Role") {
+  } else if (entryType === "Role") {
     await startRoleInput();
   }
 }
@@ -392,8 +466,8 @@ async function confirmDetails(data) {
   console.log("==================================");
   console.log(`First Name: ${data.firstName}`);
   console.log(`Last Name: ${data.lastName}`);
-  console.log(`Department Name: ${data.departmentName || 'N/A'}`);
-  console.log(`Role ID: ${data.roleId || 'N/A'}`);
+  console.log(`Department Name: ${data.departmentName || "N/A"}`);
+  console.log(`Role ID: ${data.roleId || "N/A"}`);
   console.log("==================================");
 
   const { isConfirmed } = await inquirer.prompt([
@@ -410,77 +484,85 @@ async function confirmDetails(data) {
 async function viewAllTables() {
   try {
     // View all departments
-    const [departmentRows] = await connectionPool.execute('SELECT * FROM departments');
+    const [departmentRows] = await connectionPool.execute(
+      "SELECT * FROM departments"
+    );
     console.log("\nAll Departments:");
     console.table(departmentRows);
 
     // View all roles
-    const [roleRows] = await connectionPool.execute('SELECT * FROM roles');
+    const [roleRows] = await connectionPool.execute("SELECT * FROM roles");
     console.log("\nAll Roles:");
     console.table(roleRows);
 
     // View all employees
-    const [employeeRows] = await connectionPool.execute('SELECT * FROM employees');
+    const [employeeRows] = await connectionPool.execute(
+      "SELECT * FROM employees"
+    );
     console.log("\nAll Employees:");
     console.table(employeeRows);
 
     // View all managers
-    const [managerRows] = await connectionPool.execute('SELECT * FROM managers');
+    const [managerRows] = await connectionPool.execute(
+      "SELECT * FROM managers"
+    );
     console.log("\nAll Managers:");
     console.table(managerRows);
-
+    await askExitOrStartOver();
   } catch (error) {
-    console.error('Error viewing tables:', error);
+    console.error("Error viewing tables:", error);
   }
 }
 
 async function viewAllDepartments() {
   try {
-    const [rows] = await connectionPool.execute('SELECT * FROM departments');
+    const [rows] = await connectionPool.execute("SELECT * FROM departments");
     console.log("\nAll Departments:");
     console.table(rows);
   } catch (error) {
-    console.error('Error viewing departments:', error);
+    console.error("Error viewing departments:", error);
   }
 }
 
 async function viewAllRoles() {
   try {
-    const [rows] = await connectionPool.execute('SELECT * FROM roles');
+    const [rows] = await connectionPool.execute("SELECT * FROM roles");
     console.log("\nAll Roles:");
     console.table(rows);
   } catch (error) {
-    console.error('Error viewing roles:', error);
+    console.error("Error viewing roles:", error);
   }
 }
 
 async function viewAllEmployees() {
   try {
-    const [rows] = await connectionPool.execute('SELECT * FROM employees');
+    const [rows] = await connectionPool.execute("SELECT * FROM employees");
     console.log("\nAll Employees:");
     console.table(rows);
   } catch (error) {
-    console.error('Error viewing employees:', error);
+    console.error("Error viewing employees:", error);
   }
 }
 
 async function viewAllManagers() {
   try {
-    const [rows] = await connectionPool.execute('SELECT * FROM managers');
+    const [rows] = await connectionPool.execute("SELECT * FROM managers");
     console.log("\nAll Managers:");
     console.table(rows);
   } catch (error) {
-    console.error('Error viewing managers:', error);
+    console.error("Error viewing managers:", error);
   }
 }
 
 async function viewAllSalaries() {
   try {
-    const [rows] = await connectionPool.execute('SELECT first_name, last_name, salary FROM employees');
+    const [rows] = await connectionPool.execute(
+      "SELECT first_name, last_name, salary FROM employees"
+    );
     console.log("\nAll Salaries:");
     console.table(rows);
   } catch (error) {
-    console.error('Error viewing salaries:', error);
+    console.error("Error viewing salaries:", error);
   }
 }
 
