@@ -412,40 +412,187 @@ async function startInput() {
     {
       type: "list",
       name: "usageType",
-      message: "Are you viewing your database or making an entry?",
-      choices: ["View", "Entry"],
+      message: "Are you viewing your database, making an entry, or editing?",
+      choices: ["View", "Entry", "Edit"],
     },
   ]);
 
   if (usageType === "View") {
-    const viewOptions = [
-      { name: "View All Tables", func: viewAllTables },
-      { name: "View All Departments", func: viewAllDepartments },
-      { name: "View All Roles", func: viewAllRoles },
-      { name: "View All Employees", func: viewAllEmployees },
-      { name: "View All Managers", func: viewAllManagers },
-      { name: "View All Salaries", func: viewAllSalaries },
-    ];
-
-    const { viewChoice } = await inquirer.prompt([
-      {
-        type: "list",
-        name: "viewChoice",
-        message: "Choose an option to view:",
-        choices: viewOptions.map((option) => option.name),
-      },
-    ]);
-
-    const selectedOption = viewOptions.find(
-      (option) => option.name === viewChoice
-    );
-    if (selectedOption && selectedOption.func) {
-      await selectedOption.func();
-    }
+    await handleViewOptions();
+  } else if (usageType === "Edit") {
+    await handleEditOptions();
   } else {
     await startEntryProcess();
   }
 }
+
+async function handleViewOptions() {
+  const viewOptions = [
+    { name: "View All Tables", func: viewAllTables },
+    { name: "View All Departments", func: viewAllDepartments },
+    { name: "View All Roles", func: viewAllRoles },
+    { name: "View All Employees", func: viewAllEmployees },
+    { name: "View All Managers", func: viewAllManagers },
+    { name: "View All Salaries", func: viewAllSalaries },
+  ];
+
+  const { viewChoice } = await inquirer.prompt([
+    {
+      type: "list",
+      name: "viewChoice",
+      message: "Choose an option to view:",
+      choices: viewOptions.map((option) => option.name),
+    },
+  ]);
+
+  const selectedOption = viewOptions.find(
+    (option) => option.name === viewChoice
+  );
+  if (selectedOption && selectedOption.func) {
+    await selectedOption.func();
+  }
+}
+
+async function handleEditOptions() {
+  const { editTableChoice } = await inquirer.prompt([
+    {
+      type: "list",
+      name: "editTableChoice",
+      message: "Choose a table to edit:",
+      choices: ["Departments", "Roles", "Employees", "Managers"],
+    },
+  ]);
+
+  // Add an "Edit" section
+  console.log(`Editing ${editTableChoice}...`);
+
+  // Call the generic editTable function
+  await editTable(editTableChoice);
+}
+
+async function editTable(tableName) {
+  // logic to edit the specified table
+await editEmployees();
+await editRoles();
+await editDepartments();
+await editManagers();
+}
+
+  async function editEmployees(employeeId, newData) {
+    try {
+      // Check if the employee exists
+      const [existingEmployee] = await connectionPool.execute(
+        'SELECT * FROM employees WHERE id = ?',
+        [employeeId]
+      );
+  
+      if (!existingEmployee.length) {
+        console.log(`Employee with ID ${employeeId} not found.`);
+        return;
+      }
+  
+      // Update employee data
+      await connectionPool.execute(
+        'UPDATE employees SET first_name = ?, last_name = ?, title = ?, salary = ?, manager_id = ? WHERE id = ?',
+        [newData.firstName, newData.lastName, newData.title, newData.salary, newData.managerId, employeeId]
+      );
+  
+      console.log(`Successfully updated employee with ID: ${employeeId}`);
+      displayEntryDetails(newData); // Display the updated employee details
+      await askExitOrStartOver(); // Ask the user if they want to exit or start over
+    } catch (error) {
+      console.error('Error editing employee:', error);
+    }
+  }
+
+  async function editRoles(roleId, newData) {
+    try {
+      // Check if the role exists
+      const [existingRole] = await connectionPool.execute(
+        'SELECT * FROM roles WHERE id = ?',
+        [roleId]
+      );
+  
+      if (!existingRole.length) {
+        console.log(`Role with ID ${roleId} not found.`);
+        return;
+      }
+  
+      // Update role data
+      await connectionPool.execute(
+        'UPDATE roles SET title = ?, salary = ?, department_id = ? WHERE id = ?',
+        [newData.roleTitle, newData.roleSalary, newData.departmentId, roleId]
+      );
+  
+      console.log(`Successfully updated role with ID: ${roleId}`);
+      console.log("Updated Role Details:");
+      console.log("-----------------------");
+      console.log(`Title: ${newData.roleTitle}`);
+      console.log(`Salary: ${newData.roleSalary}`);
+      console.log(`Department ID: ${newData.departmentId}`);
+      console.log("-----------------------");
+      await askExitOrStartOver(); // Ask the user if they want to exit or start over
+    } catch (error) {
+      console.error('Error editing role:', error);
+    }
+  }
+
+  async function editDepartments(departmentId, newData) {
+    try {
+      // Check if the department exists
+      const [existingDepartment] = await connectionPool.execute(
+        'SELECT * FROM departments WHERE id = ?',
+        [departmentId]
+      );
+  
+      if (!existingDepartment.length) {
+        console.log(`Department with ID ${departmentId} not found.`);
+        return;
+      }
+  
+      // Update department data
+      await connectionPool.execute(
+        'UPDATE departments SET department_name = ? WHERE id = ?',
+        [newData.departmentName, departmentId]
+      );
+  
+      console.log(`Successfully updated department with ID: ${departmentId}`);
+      console.log("Updated Department Details:");
+      console.log("---------------------------");
+      console.log(`Department Name: ${newData.departmentName}`);
+      console.log("---------------------------");
+      await askExitOrStartOver(); // Ask the user if they want to exit or start over
+    } catch (error) {
+      console.error('Error editing department:', error);
+    }
+  }
+
+  async function editManagers(managerId, newData) {
+    try {
+      // Check if the manager exists
+      const [existingManager] = await connectionPool.execute(
+        'SELECT * FROM managers WHERE id = ?',
+        [managerId]
+      );
+  
+      if (!existingManager.length) {
+        console.log(`Manager with ID ${managerId} not found.`);
+        return;
+      }
+  
+      // Update manager data
+      await connectionPool.execute(
+        'UPDATE managers SET first_name = ?, last_name = ?, department_name = ?, role_id = ? WHERE id = ?',
+        [newData.firstName, newData.lastName, newData.departmentName, newData.roleId, managerId]
+      );
+  
+      console.log(`Successfully updated manager with ID: ${managerId}`);
+      displayEntryDetails(newData); // Display the updated manager details
+      await askExitOrStartOver(); // Ask the user if they want to exit or start over
+    } catch (error) {
+      console.error('Error editing manager:', error);
+    }
+  }
 
 async function startEntryProcess() {
   const { entryType } = await inquirer.prompt(entryTypeQuestions);
@@ -519,6 +666,7 @@ async function viewAllDepartments() {
     const [rows] = await connectionPool.execute("SELECT * FROM departments");
     console.log("\nAll Departments:");
     console.table(rows);
+    await askExitOrStartOver();
   } catch (error) {
     console.error("Error viewing departments:", error);
   }
@@ -529,6 +677,7 @@ async function viewAllRoles() {
     const [rows] = await connectionPool.execute("SELECT * FROM roles");
     console.log("\nAll Roles:");
     console.table(rows);
+    await askExitOrStartOver();
   } catch (error) {
     console.error("Error viewing roles:", error);
   }
@@ -539,6 +688,7 @@ async function viewAllEmployees() {
     const [rows] = await connectionPool.execute("SELECT * FROM employees");
     console.log("\nAll Employees:");
     console.table(rows);
+    await askExitOrStartOver();
   } catch (error) {
     console.error("Error viewing employees:", error);
   }
@@ -549,6 +699,7 @@ async function viewAllManagers() {
     const [rows] = await connectionPool.execute("SELECT * FROM managers");
     console.log("\nAll Managers:");
     console.table(rows);
+    await askExitOrStartOver();
   } catch (error) {
     console.error("Error viewing managers:", error);
   }
@@ -561,6 +712,7 @@ async function viewAllSalaries() {
     );
     console.log("\nAll Salaries:");
     console.table(rows);
+    await askExitOrStartOver();
   } catch (error) {
     console.error("Error viewing salaries:", error);
   }

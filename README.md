@@ -19,7 +19,7 @@ SQL Challenge: Employee Tracker
 
 AS A business owner
 
-I WANT to be able to view and manage the departments, roles, and employees in my company
+I WANT to be able to view and add the departments, roles, managers and employees in my company
 
 SO THAT I can help plan for growth and organize employee data
 
@@ -29,9 +29,14 @@ GIVEN a command-line application that accepts user input
 
 WHEN I start the application
 
-THEN I am presented with a figlet message "Success!"
+THEN I am presented with a figlet message "EmployeeDatabase"
 
-THEN I am presented with the following options: ? Are you viewing your database or making an entry? 
+THEN I am presented with the following options: 
+
+```java
+      message: "Are you viewing your database, making an entry, or editing?",
+      choices: ["View", "Entry", "Edit"],
+```
 
 WHEN I choose to View 
 
@@ -65,14 +70,19 @@ All Employees:
 └─────────┴────┴────────────┴────────────────────┴────────────────────┴──────────┴────────────────────┘
 
 ```
+ALSO I am presented with the Exit or Start Over option below each TABLE;
+
+```java
+? Do you want to exit or start over? 
+```
+
+WHEN I choose Start Over then I will be presented with View or Entry options again
 
 WHEN I choose to make an entry
 
-THEN I am presented with: ? Are you entering a new department? (Y/N)
+THEN I am presented with: ? Are you entering an employee, manager, department or role? 
 
-WHEN I choose No the questions and input continues
-
-WHEN I choose Yes 
+WHEN I make the choice department
 
 THEN I am presented with ? Enter the new department name
 
@@ -82,12 +92,13 @@ WHEN I enter the deparment name I am presented with:
 Inserted new department: Janitorial Services with ID: 11
 Successful department entry!
 ```
+THEN I am asked to Exit or Start Over
 
-THEN I am presented with: ? Are you entering a new role? (Y/N)
+WHEN I choose Start Over 
 
-WHEN I choose No the questions and input continues
+THEN I am presented with the options again ? Are you entering an employee, manager, department or role? 
 
-WHEN I choose Yes 
+WHEN I choose role
 
 THEN I am presented with ? Enter the new role title:
 
@@ -105,13 +116,13 @@ WHEN I enter the deaprtment Id I am presented with:
 Inserted new role: Janitor with ID: 14
 Successful role entry!
 ```
-THEN I am presented with ? Are you entering an employee or a manager? (Use arrow keys)
+THEN I am asked to Exit or Start Over
 
-```java
-> Employee
-  Manager
-```
-WHEN I choose employee 
+WHEN I choose Start Over 
+
+THEN I am presented with the options again ? Are you entering an employee, manager, department or role? 
+
+WHEN I choose employee
 
 THEN I am presented with ? Enter employee's first name, Enter employee's last name, role title, salary, manager Id:
 
@@ -123,6 +134,11 @@ THEN I am presented with
 Inserted new employee: John Snow with title: Janitor with salary: 40000 with manager Id: 6 with ID: 14
 Successful employee entry!
 ```
+THEN I am asked to Exit or Start Over
+
+WHEN I choose Start Over 
+
+THEN I am presented with the options again ? Are you entering an employee, manager, department or role? 
 
 WHEN I choose manager 
 
@@ -136,7 +152,15 @@ THEN I am presented with
 Inserted new manager: Jane Eyre with title: Marketing Manager with salary: 90000 with department Id: 7 with ID: 7
 Successful manager entry!
 ```
-WHEN I have finished my entires the database will Exit me automatically
+THEN I am asked to Exit or Start Over
+
+WHEN I choose Exit
+
+THEN I have finished my entires and exit the database
+
+# Future Development
+
+**Complete the Edit Function**
 
 # References 
 
