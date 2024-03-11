@@ -50,7 +50,6 @@ const commonEmployeeQuestions = [
     validate: function (input) {
       return input.trim() !== "" || "Invalid entry";
     },
-
   },
 ];
 
@@ -58,18 +57,18 @@ const commonEmployeeQuestions = [
 async function askExitOrStartOver() {
   const { exitOrStartOver } = await inquirer.prompt([
     {
-      type: 'list',
-      name: 'exitOrStartOver',
-      message: 'Do you want to exit or start over?',
-      choices: ['Exit', 'Start Over'],
+      type: "list",
+      name: "exitOrStartOver",
+      message: "Do you want to exit or start over?",
+      choices: ["Exit", "Start Over"],
     },
   ]);
 
-  if (exitOrStartOver === 'Exit') {
-    console.log('Exiting the application. Goodbye!');
+  if (exitOrStartOver === "Exit") {
+    console.log("Exiting the application. Goodbye!");
     process.exit(0); // Exit the application with a success code
   } else {
-    console.log('Starting over...');
+    console.log("Starting over...");
     await startInput();
   }
 }
@@ -210,7 +209,6 @@ async function insertEmployee(employeeData) {
   } catch (error) {
     console.error("Error inserting employee:", error);
   }
-
 }
 //Function to insert manager input to manager table
 async function insertManager(firstName, lastName, departmentName, roleId) {
@@ -220,11 +218,13 @@ async function insertManager(firstName, lastName, departmentName, roleId) {
       [firstName, lastName, departmentName, roleId]
     );
 
-    console.log(`Inserted manager: ${firstName} ${lastName} with ID: ${rows.insertId}`);
+    console.log(
+      `Inserted manager: ${firstName} ${lastName} with ID: ${rows.insertId}`
+    );
     displayEntryDetails({ firstName, lastName, departmentName, roleId });
-    await askExitOrStartOver(); 
+    await askExitOrStartOver();
   } catch (error) {
-    console.error('Error inserting manager:', error);
+    console.error("Error inserting manager:", error);
   }
 }
 //Function to insert role data input to riole table
@@ -245,11 +245,13 @@ async function insertRole(title, salary, departmentId) {
       [title, salary, departmentId]
     );
 
-    console.log(`Successful role entry! New role: ${title} with ID: ${rows.insertId}`);
-    await askExitOrStartOver(); 
+    console.log(
+      `Successful role entry! New role: ${title} with ID: ${rows.insertId}`
+    );
+    await askExitOrStartOver();
     return rows.insertId;
   } catch (error) {
-    console.error('Error inserting role:', error);
+    console.error("Error inserting role:", error);
     return null;
   }
 }
@@ -278,9 +280,11 @@ async function insertDepartment(departmentName) {
       [departmentName]
     );
 
-    console.log(`Inserted new department: ${departmentName} with ID: ${rows.insertId}`);
+    console.log(
+      `Inserted new department: ${departmentName} with ID: ${rows.insertId}`
+    );
     console.log("Successful department entry!");
-    await askExitOrStartOver(); 
+    await askExitOrStartOver();
     return rows.insertId;
   } catch (error) {
     console.error("Error inserting department:", error);
@@ -455,7 +459,7 @@ async function handleViewOptions() {
     await selectedOption.func();
   }
 }
-//Function view the choices of tables to edit
+// Function to view the choices of tables to edit
 async function handleEditOptions() {
   const { editTableChoice } = await inquirer.prompt([
     {
@@ -470,17 +474,194 @@ async function handleEditOptions() {
   await editTable(editTableChoice);
 }
 
-/*async function editTable(tableName) {
-  // logic to edit the specified table
-await editEmployees();
-await editRoles();
-await editDepartments();
-await editManagers();
+// Function to edit the specified table
+async function editTable(tableName) {
+  try {
+    // Ask user which fields they want to edit
+    const { editFields } = await inquirer.prompt([
+      {
+        type: "checkbox",
+        name: "editFields",
+        message: `Choose the fields you want to edit in ${tableName}:`,
+        choices: getEditFieldChoices(tableName),
+      },
+    ]);
+
+    if (tableName === "Departments") {
+      await editDepartments(editFields);
+    } else if (tableName === "Roles") {
+      await editRoles(editFields);
+    } else if (tableName === "Employees") {
+      await editEmployees(editFields);
+    } else if (tableName === "Managers") {
+      await editManagers(editFields);
+    }
+  } catch (error) {
+    console.error(`Error editing ${tableName}:`, error);
+  }
 }
-// async function editEmployees() {
-// async function editRoles() {
-// async function editDepartments() {
-// async function editManagers() {*/
+
+// Function to get the choices for specific fields to edit based on the table
+function getEditFieldChoices(tableName) {
+  switch (tableName) {
+    case "Departments":
+      return ["Department Name"];
+    case "Roles":
+      return ["Title", "Salary", "Department ID"];
+    case "Employees":
+      return ["ID", "First Name", "Last Name", "Title", "Salary", "Manager ID"];
+    case "Managers":
+      return ["ID", "First Name", "Last Name", "Department Name", "Role ID"];
+    default:
+      return [];
+  }
+}
+
+async function editEmployees(editFields) {
+  try {
+    // Check if the employee exists
+    const [existingEmployee] = await connectionPool.execute(
+      "SELECT * FROM employees WHERE id = ?",
+      [employeeId]
+    );
+
+    if (!existingEmployee.length) {
+      console.log(`Employee with ID ${employeeId} not found.`);
+      return;
+    }
+
+    // Update employee data
+    const updateParams = [
+      newData.firstName || null,
+      newData.lastName || null,
+      newData.title || null,
+      newData.salary || null,
+      newData.managerId || null,
+      employeeId,
+    ];
+
+    await connectionPool.execute(
+      "UPDATE employees SET first_name = ?, last_name = ?, title = ?, salary = ?, manager_id = ? WHERE id = ?",
+      [
+        newData.firstName || null,
+        newData.lastName || null,
+        newData.title || null,
+        newData.salary || null,
+        newData.managerId || null,
+        employeeId,
+      ]
+    );
+
+    console.log(`Successfully updated employee with ID: ${employeeId}`);
+    displayEntryDetails(newData); // Display the updated employee details
+    await askExitOrStartOver();
+  } catch (error) {
+    console.error("Error editing employee:", error);
+  }
+}
+
+async function editRoles(editFields) {
+  try {
+    // Check if the role exists
+    const [existingRole] = await connectionPool.execute(
+      "SELECT * FROM roles WHERE id = ?",
+      [roleId]
+    );
+
+    if (!existingRole.length) {
+      console.log(`Role with ID ${roleId} not found.`);
+      return;
+    }
+
+    // Update role data
+    await connectionPool.execute(
+      "UPDATE roles SET title = ?, salary = ?, department_id = ? WHERE id = ?",
+      [
+        newData.title || null,
+        newData.salary || null,
+        newData.departmentId || null,
+        roleId,
+      ]
+    );
+
+    console.log(`Successfully updated role with ID: ${roleId}`);
+    displayEntryDetails(newData); // Display the updated role details
+    await askExitOrStartOver();
+  } catch (error) {
+    console.error("Error editing role:", error);
+  }
+}
+
+async function editDepartments(editFields) {
+  try {
+    // Check if the department exists
+    const [existingDepartment] = await connectionPool.execute(
+      "SELECT * FROM departments WHERE id = ?",
+      [departmentId]
+    );
+
+    if (!existingDepartment.length) {
+      console.log(`Department with ID ${departmentId} not found.`);
+      return;
+    }
+
+    // Update department data
+    await connectionPool.execute(
+      "UPDATE departments SET department_name = ? WHERE id = ?",
+      [newData.departmentName || null, departmentId]
+    );
+
+    console.log(`Successfully updated department with ID: ${departmentId}`);
+    console.log("Updated Department Details:");
+    console.log("---------------------------");
+    console.log(`Department Name: ${newData.departmentName || "N/A"}`);
+    console.log("---------------------------");
+    await askExitOrStartOver();
+  } catch (error) {
+    console.error("Error editing department:", error);
+  }
+}
+
+async function editManagers(editFields) {
+  try {
+    // Check if the manager exists
+    const [existingManager] = await connectionPool.execute(
+      "SELECT * FROM managers WHERE id = ?",
+      [managerId]
+    );
+
+    if (!existingManager.length) {
+      console.log(`Manager with ID ${managerId} not found.`);
+      return;
+    }
+
+    // Update manager data
+    const updateParams = [
+      newData.firstName || null,
+      newData.lastName || null,
+      newData.departmentName || null,
+      newData.roleId || null,
+      managerId,
+    ];
+
+    await connectionPool.execute(
+      "UPDATE managers SET first_name = ?, last_name = ?, department_name = ?, role_id = ? WHERE id = ?",
+      [
+        newData.firstName || null,
+        newData.lastName || null,
+        newData.departmentName || null,
+        newData.roleId || null,
+        managerId,
+      ]
+    );
+
+    console.log(`Successfully updated manager with ID: ${managerId}`);
+    displayEntryDetails(newData); // Display the updated manager details
+    await askExitOrStartOver();
+  } catch (error) {
+    console.error("Error editing manager:", error);
+  }
+}
 
 async function startEntryProcess() {
   const { entryType } = await inquirer.prompt(entryTypeQuestions);
