@@ -504,15 +504,18 @@ async function editTable(tableName) {
 // Function to get edit parameters for a specific table
 async function getEditParams(tableName, editFields) {
   const editParams = {
-    departments: ["departmentName"],
-    // Add similar entries for other tables
+    Departments: ["departmentName", "departmentId"],
+    Roles: ["title", "salary", "departmentId"],
+    Employees: ["firstName", "lastName", "title", "salary", "managerId"],
+    Managers: ["firstName", "lastName", "departmentName", "roleId"],
+    // Add more tables and fields as needed
   };
 
   const prompts = [];
   for (const field of editParams[tableName]) {
     if (editFields.includes(field)) {
       prompts.push({
-        type: 'input',
+        type: "input",
         name: field,
         message: `Enter the new ${field.toLowerCase()}:`,
       });
@@ -521,16 +524,17 @@ async function getEditParams(tableName, editFields) {
 
   const newData = await inquirer.prompt(prompts);
 
-  if (tableName === "departments") {
+  if (tableName === "Departments" && editFields.includes("departmentId")) {
     newData.departmentId = await inquirer.prompt([
       {
-        type: 'input',
-        name: 'departmentId',
-        message: 'Enter the department ID you want to edit:',
+        type: "input",
+        name: "departmentId",
+        message: "Enter the department ID you want to edit:",
       },
     ]);
+    newData.departmentId = newData.departmentId.departmentId; // Extract the value from the object
   }
-  
+
   return { ...newData };
 }
 
@@ -634,7 +638,7 @@ async function editDepartments(editFields) {
 
     // Check if the department exists
     const [existingDepartment] = await connectionPool.execute(
-      'SELECT * FROM departments WHERE id = ?',
+      "SELECT * FROM departments WHERE id = ?",
       [departmentId]
     );
 
@@ -645,7 +649,7 @@ async function editDepartments(editFields) {
 
     // Update department data
     await connectionPool.execute(
-      'UPDATE departments SET department_name = ? WHERE id = ?',
+      "UPDATE departments SET department_name = ? WHERE id = ?",
       [newData.departmentName, departmentId]
     );
 
@@ -656,7 +660,7 @@ async function editDepartments(editFields) {
     console.log("---------------------------");
     await askExitOrStartOver(); // Ask the user if they want to exit or start over
   } catch (error) {
-    console.error('Error editing department:', error);
+    console.error("Error editing department:", error);
   }
 }
 
