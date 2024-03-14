@@ -42,4 +42,4 @@ INSERT INTO employees (first_name, last_name, title, salary, manager_id) VALUES
 ('Kevin', 'Malone', 'Accountant', 60000, 3),
 ('Mary', 'Jane', 'Employee Support', 60000, 4),
 ('Buffy', 'Thevampireslayer', 'Account Rep', 70000, 5),
-('Hewho', 'Shallnotbenamed', 'Guard', 40000, 6);
+('Hewho', 'Mustnotbenamed', 'Guard', 40000, 6);
