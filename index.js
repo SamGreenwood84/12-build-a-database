@@ -50,7 +50,6 @@ const commonEmployeeQuestions = [
     validate: function (input) {
       return input.trim() !== "" || "Invalid entry";
     },
-
   },
 ];
 
@@ -58,18 +57,18 @@ const commonEmployeeQuestions = [
 async function askExitOrStartOver() {
   const { exitOrStartOver } = await inquirer.prompt([
     {
-      type: 'list',
-      name: 'exitOrStartOver',
-      message: 'Do you want to exit or start over?',
-      choices: ['Exit', 'Start Over'],
+      type: "list",
+      name: "exitOrStartOver",
+      message: "Do you want to exit or start over?",
+      choices: ["Exit", "Start Over"],
     },
   ]);
 
-  if (exitOrStartOver === 'Exit') {
-    console.log('Exiting the application. Goodbye!');
+  if (exitOrStartOver === "Exit") {
+    console.log("Exiting the application. Goodbye!");
     process.exit(0); // Exit the application with a success code
   } else {
-    console.log('Starting over...');
+    console.log("Starting over...");
     await startInput();
   }
 }
@@ -210,7 +209,6 @@ async function insertEmployee(employeeData) {
   } catch (error) {
     console.error("Error inserting employee:", error);
   }
-
 }
 //Function to insert manager input to manager table
 async function insertManager(firstName, lastName, departmentName, roleId) {
@@ -220,11 +218,13 @@ async function insertManager(firstName, lastName, departmentName, roleId) {
       [firstName, lastName, departmentName, roleId]
     );
 
-    console.log(`Inserted manager: ${firstName} ${lastName} with ID: ${rows.insertId}`);
+    console.log(
+      `Inserted manager: ${firstName} ${lastName} with ID: ${rows.insertId}`
+    );
     displayEntryDetails({ firstName, lastName, departmentName, roleId });
-    await askExitOrStartOver(); 
+    await askExitOrStartOver();
   } catch (error) {
-    console.error('Error inserting manager:', error);
+    console.error("Error inserting manager:", error);
   }
 }
 //Function to insert role data input to riole table
@@ -245,11 +245,13 @@ async function insertRole(title, salary, departmentId) {
       [title, salary, departmentId]
     );
 
-    console.log(`Successful role entry! New role: ${title} with ID: ${rows.insertId}`);
-    await askExitOrStartOver(); 
+    console.log(
+      `Successful role entry! New role: ${title} with ID: ${rows.insertId}`
+    );
+    await askExitOrStartOver();
     return rows.insertId;
   } catch (error) {
-    console.error('Error inserting role:', error);
+    console.error("Error inserting role:", error);
     return null;
   }
 }
@@ -278,9 +280,11 @@ async function insertDepartment(departmentName) {
       [departmentName]
     );
 
-    console.log(`Inserted new department: ${departmentName} with ID: ${rows.insertId}`);
+    console.log(
+      `Inserted new department: ${departmentName} with ID: ${rows.insertId}`
+    );
     console.log("Successful department entry!");
-    await askExitOrStartOver(); 
+    await askExitOrStartOver();
     return rows.insertId;
   } catch (error) {
     console.error("Error inserting department:", error);
@@ -489,10 +493,10 @@ async function handleEditOptions() {
 
 async function editTable(tableName) {
   // logic to edit the specified table
-await editEmployees();
-await editRoles();
-await editDepartments();
-await editManagers();
+  await editEmployees();
+  await editRoles();
+  await editDepartments();
+  await editManagers();
 }
 
 async function editDepartments() {
@@ -519,7 +523,10 @@ async function editDepartments() {
       },
     ]);
 
-    const { oldDepartmentId, newDepartmentName } = { ...oldDepartmentData, ...newDepartmentData };
+    const { oldDepartmentId, newDepartmentName } = {
+      ...oldDepartmentData,
+      ...newDepartmentData,
+    };
 
     if (!oldDepartmentId || !newDepartmentName) {
       throw new Error("Department ID and new name are required.");
@@ -537,51 +544,171 @@ async function editDepartments() {
   }
 }
 
-async function editRoles(roleId, newTitle, newSalary) {
+async function editRoles() {
   try {
-    if (newTitle === undefined || newSalary === undefined) {
-      throw new Error("New role title or salary is not provided.");
+    const oldRoleData = await inquirer.prompt([
+      {
+        type: "input",
+        name: "oldRoleId",
+        message: "Enter the role ID you want to update:",
+        validate: function (input) {
+          return input.trim() !== "" || "Invalid entry";
+        },
+      },
+    ]);
+
+    const newRoleData = await inquirer.prompt([
+      {
+        type: "input",
+        name: "newTitle",
+        message: "Enter the NEW role title:",
+        validate: function (input) {
+          return input.trim() !== "" || "Invalid entry";
+        },
+      },
+      {
+        type: "input",
+        name: "newSalary",
+        message: "Enter the NEW role salary:",
+        validate: function (input) {
+          return /^\d+(\.\d{1,2})?$/.test(input) || "Invalid salary format";
+        },
+      },
+    ]);
+
+    const { oldRoleId, newTitle, newSalary } = {
+      ...oldRoleData,
+      ...newRoleData,
+    };
+
+    if (!oldRoleId || !newTitle || !newSalary) {
+      throw new Error("Role ID, new title, and salary are required.");
     }
 
     await connectionPool.execute(
-      "UPDATE roles SET title = ?, salary = ? WHERE role_id = ?",
-      [newTitle, newSalary, roleId]
+      "UPDATE roles SET title = ?, salary = ? WHERE id = ?",
+      [newTitle, newSalary, oldRoleId]
     );
-    console.log("Role updated successfully!");
+
+    console.log(`Role with ID ${oldRoleId} updated successfully!`);
     await askExitOrStartOver();
   } catch (error) {
     console.error("Error editing role:", error);
   }
 }
 
-async function editEmployees(employeeId, newFirstName, newLastName, newRoleId) {
+async function editEmployees() {
   try {
-    if (newFirstName === undefined || newLastName === undefined || newRoleId === undefined) {
-      throw new Error("New employee first name, last name, or role ID is not provided.");
+    const oldEmployeeData = await inquirer.prompt([
+      {
+        type: "input",
+        name: "oldEmployeeId",
+        message: "Enter the employee ID you want to update:",
+        validate: function (input) {
+          return input.trim() !== "" || "Invalid entry";
+        },
+      },
+    ]);
+
+    const newEmployeeData = await inquirer.prompt([
+      {
+        type: "input",
+        name: "newFirstName",
+        message: "Enter the NEW first name:",
+        validate: function (input) {
+          return input.trim() !== "" || "Invalid entry";
+        },
+      },
+      {
+        type: "input",
+        name: "newLastName",
+        message: "Enter the NEW last name:",
+        validate: function (input) {
+          return input.trim() !== "" || "Invalid entry";
+        },
+      },
+      {
+        type: "input",
+        name: "newRoleId",
+        message: "Enter the NEW role ID:",
+        validate: function (input) {
+          return input.trim() !== "" || "Invalid entry";
+        },
+      },
+    ]);
+
+    const { oldEmployeeId, newFirstName, newLastName, newRoleId } = {
+      ...oldEmployeeData,
+      ...newEmployeeData,
+    };
+
+    if (!oldEmployeeId || !newFirstName || !newLastName || !newRoleId) {
+      throw new Error(
+        "Employee ID, new first name, last name, and role ID are required."
+      );
     }
 
     await connectionPool.execute(
-      "UPDATE employees SET first_name = ?, last_name = ?, role_id = ? WHERE employee_id = ?",
-      [newFirstName, newLastName, newRoleId, employeeId]
+      "UPDATE employees SET first_name = ?, last_name = ?, role_id = ? WHERE id = ?",
+      [newFirstName, newLastName, newRoleId, oldEmployeeId]
     );
-    console.log("Employee updated successfully!");
+
+    console.log(`Employee with ID ${oldEmployeeId} updated successfully!`);
     await askExitOrStartOver();
   } catch (error) {
     console.error("Error editing employee:", error);
   }
 }
 
-async function editManagers(managerId, newFirstName, newLastName) {
+async function editManagers() {
   try {
-    if (newFirstName === undefined || newLastName === undefined) {
-      throw new Error("New manager first name or last name is not provided.");
+    const oldManagerData = await inquirer.prompt([
+      {
+        type: "input",
+        name: "oldManagerId",
+        message: "Enter the manager ID you want to update:",
+        validate: function (input) {
+          return input.trim() !== "" || "Invalid entry";
+        },
+      },
+    ]);
+
+    const newManagerData = await inquirer.prompt([
+      {
+        type: "input",
+        name: "newFirstName",
+        message: "Enter the NEW first name:",
+        validate: function (input) {
+          return input.trim() !== "" || "Invalid entry";
+        },
+      },
+      {
+        type: "input",
+        name: "newLastName",
+        message: "Enter the NEW last name:",
+        validate: function (input) {
+          return input.trim() !== "" || "Invalid entry";
+        },
+      },
+    ]);
+
+    const { oldManagerId, newFirstName, newLastName } = {
+      ...oldManagerData,
+      ...newManagerData,
+    };
+
+    if (!oldManagerId || !newFirstName || !newLastName) {
+      throw new Error(
+        "Manager ID, new first name, and last name are required."
+      );
     }
 
     await connectionPool.execute(
-      "UPDATE managers SET first_name = ?, last_name = ? WHERE manager_id = ?",
-      [newFirstName, newLastName, managerId]
+      "UPDATE managers SET first_name = ?, last_name = ? WHERE id = ?",
+      [newFirstName, newLastName, oldManagerId]
     );
-    console.log("Manager updated successfully!");
+
+    console.log(`Manager with ID ${oldManagerId} updated successfully!`);
     await askExitOrStartOver();
   } catch (error) {
     console.error("Error editing manager:", error);
