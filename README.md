@@ -1,13 +1,10 @@
 # 12-build-a-database
+
 SQL Challenge: Employee Tracker
 
 # Table of Contents
 
-
-
 # Live Demo Video
-
-
 
 # Getting Started
 
@@ -31,14 +28,14 @@ WHEN I start the application
 
 THEN I am presented with a figlet message "EmployeeDatabase"
 
-THEN I am presented with the following options: 
+THEN I am presented with the following options:
 
 ```java
       message: "Are you viewing your database, making an entry, or editing?",
       choices: ["View", "Entry", "Edit"],
 ```
 
-WHEN I choose to View 
+WHEN I choose to View
 
 THEN I am presented with a set of options in the command line
 
@@ -52,7 +49,7 @@ THEN I am presented with a set of options in the command line
   View All Salaries
 ```
 
-WHEN I choose View All <CHOICE>> 
+WHEN I choose View All <CHOICE>>
 
 THEN I am presented with the TABLE, for example the employees TABLE;
 
@@ -70,17 +67,18 @@ All Employees:
 └─────────┴────┴────────────┴────────────────────┴────────────────────┴──────────┴────────────────────┘
 
 ```
+
 ALSO I am presented with the Exit or Start Over option below each TABLE;
 
 ```java
-? Do you want to exit or start over? 
+? Do you want to exit or start over?
 ```
 
 WHEN I choose Start Over then I will be presented with View or Entry options again
 
 WHEN I choose to make an entry
 
-THEN I am presented with: ? Are you entering an employee, manager, department or role? 
+THEN I am presented with: ? Are you entering an employee, manager, department or role?
 
 WHEN I make the choice department
 
@@ -92,11 +90,12 @@ WHEN I enter the deparment name I am presented with:
 Inserted new department: Janitorial Services with ID: 11
 Successful department entry!
 ```
+
 THEN I am asked to Exit or Start Over
 
-WHEN I choose Start Over 
+WHEN I choose Start Over
 
-THEN I am presented with the options again ? Are you entering an employee, manager, department or role? 
+THEN I am presented with the options again ? Are you entering an employee, manager, department or role?
 
 WHEN I choose role
 
@@ -108,19 +107,20 @@ THEN I am presented with ? Enter the new role salary:
 
 WHEN I enter the salary
 
-THEN I am presented with ? Enter the department Id: 
+THEN I am presented with ? Enter the department Id:
 
-WHEN I enter the deaprtment Id I am presented with: 
+WHEN I enter the deaprtment Id I am presented with:
 
 ```java
 Inserted new role: Janitor with ID: 14
 Successful role entry!
 ```
+
 THEN I am asked to Exit or Start Over
 
-WHEN I choose Start Over 
+WHEN I choose Start Over
 
-THEN I am presented with the options again ? Are you entering an employee, manager, department or role? 
+THEN I am presented with the options again ? Are you entering an employee, manager, department or role?
 
 WHEN I choose employee
 
@@ -128,19 +128,20 @@ THEN I am presented with ? Enter employee's first name, Enter employee's last na
 
 WHEN I enter all the requested information
 
-THEN I am presented with 
+THEN I am presented with
 
 ```java
 Inserted new employee: John Snow with title: Janitor with salary: 40000 with manager Id: 6 with ID: 14
 Successful employee entry!
 ```
+
 THEN I am asked to Exit or Start Over
 
-WHEN I choose Start Over 
+WHEN I choose Start Over
 
-THEN I am presented with the options again ? Are you entering an employee, manager, department or role? 
+THEN I am presented with the options again ? Are you entering an employee, manager, department or role?
 
-WHEN I choose manager 
+WHEN I choose manager
 
 THEN I am presented with ? Enter managers's first name, Enter managers's last name, department name, roleID:
 
@@ -152,6 +153,7 @@ THEN I am presented with
 Inserted new manager: Jane Eyre with title: Marketing Manager with salary: 90000 with department Id: 7 with ID: 7
 Successful manager entry!
 ```
+
 THEN I am asked to Exit or Start Over
 
 WHEN I choose Exit
@@ -162,7 +164,7 @@ THEN I have finished my entires and exit the database
 
 **Complete the Edit Function**
 
-# References 
+# References
 
 Bootcamp Spot MySQL2 for node.js, inquirer
 
@@ -175,6 +177,8 @@ Figet Installation: [Cloudsmith.com](https://cloudsmith.com/navigator/npm/figlet
 Figlet Art Generator: [askapache.com](https://www.askapache.com/online-tools/figlet-ascii/)
 
 DESCRIBE query in mysql for debugging: [dev.mysql.com](https://https://dev.mysql.com/doc/refman/8.0/en/describe.html)
+
+Editing paramaters: [docs.devart.com](docs.devart.com/fusion-for-mysql/writing-and-executing-sql-statements/using-parameters.html)
 
 # Deployment
 
