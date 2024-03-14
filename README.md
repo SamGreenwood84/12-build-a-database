@@ -4,6 +4,15 @@ SQL Challenge: Employee Tracker
 
 # Table of Contents
 
+- [Live Demo](#live-demo)
+- [Getting Started](#getting-started)
+- [User Story](#user-story)
+- [Acceptance Criteria](#acceptance-criteria)
+- [Built-With](#built-with)
+- [Collaboration](#collaboration)
+- [Deployment](#deployment)
+- [License](#license)
+
 # Live Demo Video
 
 # Getting Started
@@ -194,9 +203,11 @@ WHEN I choose Exit
 
 THEN I have finished my entires and exit the database
 
-# References
+# Built-With
 
 Bootcamp Spot MySQL2 for node.js, inquirer
+
+# Collaboration
 
 Referenced code from Project 2-Dungeons & Devs: [GitHub Link](https://github.com/Maximilian93B/DungeonsAndDevs.git), Challenge 9 and Challenge 10
 
@@ -212,4 +223,10 @@ Editing paramaters: [docs.devart.com](docs.devart.com/fusion-for-mysql/writing-a
 
 # Deployment
 
-GitHub Repository Link [Click Here!](https://)
+GitHub Repository Link [Click Here!](https://github.com/SamGreenwood84/12-build-a-database.git)
+
+# License
+
+MIT License
+
+Copyright (c) 2024 SamGreenwood
