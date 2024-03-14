@@ -34,6 +34,40 @@ THEN I am presented with the following options:
       message: "Are you viewing your database, making an entry, or editing?",
       choices: ["View", "Entry", "Edit"],
 ```
+WHEN I choose to Edit 
+
+THEN I am presented with
+
+```java
+? Choose a table to edit: (Use arrow keys)
+> Departments
+  Roles
+  Employees
+  Managers
+```
+WHEN I make my choice 
+
+THEN I will be asked to enter the ID I want to update
+
+WHEN I enter an ID
+
+THEN I am asked to enter the NEW entry
+
+WHEN I have entered the new information and hit enter
+
+THEN I am presented with a Success mnessage 
+
+```java
+? Enter the NEW department name: Ad Sales
+Department with ID 1 updated successfully!
+```
+THEN I am presented with 
+
+```java
+? Do you want to exit or start over? (Use arrow keys)
+> Exit
+  Start Over
+```
 
 WHEN I choose to View
 
@@ -159,10 +193,6 @@ THEN I am asked to Exit or Start Over
 WHEN I choose Exit
 
 THEN I have finished my entires and exit the database
-
-# Future Development
-
-**Complete the Edit Function**
 
 # References
 
