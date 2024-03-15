@@ -213,9 +213,13 @@ THEN I have finished my entires and exit the database
 Dependancies: 
 
 "dotenv": "^16.4.5",
+
 "figlet": "^1.7.0",
+
 "inquirer": "^8.2.4",
+
 "mysql2": "^3.9.2",
+
 "sequelize": "^6.37.1"
 
 # Collaboration
@@ -235,6 +239,8 @@ Editing paramaters: [docs.devart.com](docs.devart.com/fusion-for-mysql/writing-a
 # Deployment
 
 GitHub Repository Link [Click Here!](https://github.com/SamGreenwood84/12-build-a-database.git)
+
+For Googl;e Drive Link: [Click Here!]( https://watch.screencastify.com/v/FlgUKrIRKhJyHXD0EJIo)
 
 # License
 
