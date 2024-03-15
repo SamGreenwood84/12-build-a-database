@@ -240,7 +240,7 @@ Editing paramaters: [docs.devart.com](docs.devart.com/fusion-for-mysql/writing-a
 
 GitHub Repository Link [Click Here!](https://github.com/SamGreenwood84/12-build-a-database.git)
 
-For Googl;e Drive Link: [Click Here!]( https://watch.screencastify.com/v/FlgUKrIRKhJyHXD0EJIo)
+For Google Drive Link: [Click Here!]( https://watch.screencastify.com/v/FlgUKrIRKhJyHXD0EJIo)
 
 # License
 
