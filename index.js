@@ -17,10 +17,7 @@ const connectionPool = mysql.createPool({
 //Function to display Figlet message
 function displaySuccessMessage() {
   try {
-    const figletText = fs.readFileSync(
-      path.join(__dirname, "Success.txt"),
-      "utf8"
-    );
+    const figletText = fs.readFileSync
     execSync(`figlet EmployeeDatabase ${figletText}`, { stdio: "inherit" });
   } catch (error) {
     console.error("Error displaying Figlet message:", error.message);
