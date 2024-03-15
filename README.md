@@ -15,7 +15,7 @@
 
 # Live Demo Video
 
-<video controls src="config/db/assets/12-build-a-database.mp4" title="Title"></video>
+<video controls src="config/db/assets/12-build-a-database.mp4" title="Title"></video> (Google Drive Link Below)
 
 # Getting Started
 
