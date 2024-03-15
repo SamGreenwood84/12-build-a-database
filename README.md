@@ -15,6 +15,8 @@
 
 # Live Demo Video
 
+<video controls src="config/db/assets/12-build-a-database.mp4" title="Title"></video>
+
 # Getting Started
 
 1. Clone gitHub repository
